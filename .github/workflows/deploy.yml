@@ -18,10 +18,18 @@ jobs:
 
       - name: Configurar Credenciais do Banco de Dados 🔧
         run: |
-          # Substitui os valores vazios padrão no arquivo config.js pelas credenciais guardadas no GitHub Secrets
-          sed -i "s|DATABASE_URL: 'enxoval.db'|DATABASE_URL: '${{ secrets.DATABASE_URL }}'|g" config.js
-          sed -i "s|DATABASE_TOKEN: ''|DATABASE_TOKEN: '${{ secrets.DATABASE_TOKEN }}'|g" config.js
-          echo "Credenciais do banco de dados configuradas com sucesso no arquivo de build!"
+          # Pega de secrets (caso tenha criado como Secret) ou vars (caso tenha criado como Variável)
+          URL="${{ secrets.DATABASE_URL || vars.DATABASE_URL }}"
+          TOKEN="${{ secrets.DATABASE_TOKEN || vars.DATABASE_TOKEN }}"
+          
+          # Reescreve o arquivo config.js inteiro de forma robusta
+          cat <<EOF > config.js
+          window.ENV = {
+              DATABASE_URL: '$URL',
+              DATABASE_TOKEN: '$TOKEN'
+          };
+          EOF
+          echo "Credenciais injetadas no config.js!"
 
       - name: Deploy to GitHub Pages 🚀
         uses: JamesIves/github-pages-deploy-action@v4
