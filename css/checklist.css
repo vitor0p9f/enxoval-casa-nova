@@ -150,6 +150,14 @@
    ========================================== */
 .checklist-section {
     background-color: var(--bg-primary);
+    align-items: stretch; /* Override align-items: center to make canva-frame stretch to full height */
+}
+
+.checklist-section .canva-frame {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    /* Removed the grid workaround */
 }
 
 .section-header {
@@ -216,6 +224,9 @@
 .checklist-columns-container {
     width: 100%;
     margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
 }
 
 .two-columns-grid {
@@ -223,6 +234,7 @@
     grid-template-columns: repeat(2, 1fr);
     gap: 2rem;
     align-items: start;
+    flex: 1;
 }
 
 /* Section Card */
@@ -450,6 +462,24 @@
     height: 28px;
     margin-bottom: 0.4rem;
     opacity: 0.5;
+}
+
+/* Empty checklist state */
+.empty-checklist-state {
+    grid-column: 1 / -1;
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 5rem 1rem;
+    text-align: center;
+    background-color: var(--white);
+    border-radius: var(--radius-md);
+    border: 2px dashed var(--border-dashed);
+    box-shadow: var(--shadow-sm);
+    height: 100%;
+    min-height: 300px;
 }
 
 /* Section Drag Handles and Grips */

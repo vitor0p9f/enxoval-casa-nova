@@ -381,13 +381,13 @@ async function saveStateToTurso() {
         appState.items.forEach(item => {
             statements.push({
                 sql: "INSERT INTO items (id, section_id, name, status, active_option_id, acquired_at) VALUES (?, ?, ?, ?, ?, ?);",
-                args: [item.id, item.sectionId, item.name, item.status, item.activeOptionId, item.acquiredAt || null]
+                args: [item.id, item.sectionId, item.name, item.status, item.activeOptionId || null, item.acquiredAt || null]
             });
             
             item.options.forEach(opt => {
                 statements.push({
                     sql: "INSERT INTO item_options (id, item_id, store_name, price, url, image_url) VALUES (?, ?, ?, ?, ?, ?);",
-                    args: [opt.id, item.id, opt.storeName, opt.price, opt.url, opt.imageUrl]
+                    args: [opt.id, item.id, opt.storeName || null, opt.price, opt.url || null, opt.imageUrl || null]
                 });
             });
         });

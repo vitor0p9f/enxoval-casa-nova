@@ -5,7 +5,9 @@
 document.addEventListener('DOMContentLoaded', async () => {
     initScrollDots();
     initEventListeners();
+    setGlobalLoading(true);
     await loadState();
+    setGlobalLoading(false);
     renderAll();
 });
 

@@ -2,6 +2,24 @@
    RENDER & UI INTERACTION FUNCTIONS
    ========================================== */
 
+function setGlobalLoading(isLoading) {
+    const ids = ['add-section-btn', 'add-item-btn', 'search-input', 'download-db-btn', 'export-btn', 'import-btn-trigger'];
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.disabled = isLoading;
+    });
+
+    const container = document.getElementById('sections-container');
+    if (isLoading && container) {
+        container.innerHTML = `
+            <div style="grid-column: 1 / -1; align-self: stretch; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5rem 1rem; color: var(--text-muted); min-height: 300px; height: 100%;">
+                <span class="spinner" style="display: inline-block; width: 40px; height: 40px; border-width: 4px; border-color: var(--primary) transparent transparent transparent; margin-bottom: 1.5rem;"></span>
+                <p style="font-size: 1.1rem; font-family: 'Playfair Display', serif; font-style: italic; color: var(--text-dark);">Buscando os dados do enxoval...</p>
+            </div>
+        `;
+    }
+}
+
 function renderAll() {
     renderChecklist();
     renderDashboard();
@@ -30,7 +48,6 @@ function renderChecklist() {
             <h3 style="color: var(--text-dark); font-size: 1.8rem; margin-bottom: 0.5rem; font-family: 'Playfair Display', serif; font-style: italic;">O nosso lar começa aqui</h3>
             <p style="color: var(--text-muted); font-size: 0.95rem;">Clique em <span style="color: var(--secondary); font-weight: 600;">Nova seção</span> para começar a organizar os detalhes.</p>
         `;
-        emptyState.style.cssText = 'grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5rem 1rem; text-align: center; background-color: var(--white); border-radius: var(--radius-md); border: 2px dashed var(--border-dashed); box-shadow: var(--shadow-sm);';
         container.appendChild(emptyState);
     }
 
@@ -299,20 +316,20 @@ function closeConfirmUncheckModal() {
     pendingUncheckItemId = null;
 }
 
-function handleConfirmUncheckSubmit() {
+async function handleConfirmUncheckSubmit() {
     if (pendingUncheckItemId) {
         const item = appState.items.find(i => i.id === pendingUncheckItemId);
         if (item) {
             item.status = 'pending';
             item.acquiredAt = null;
-            saveState();
+            await saveState();
             renderAll();
         }
     }
     closeConfirmUncheckModal();
 }
 
-function toggleItemStatus(itemId) {
+async function toggleItemStatus(itemId) {
     const item = appState.items.find(i => i.id === itemId);
     if (item) {
         if (item.status === 'acquired') {
@@ -320,7 +337,7 @@ function toggleItemStatus(itemId) {
         } else {
             item.status = 'acquired';
             item.acquiredAt = new Date().toLocaleDateString('pt-BR');
-            saveState();
+            await saveState();
             renderAll();
         }
     }
@@ -348,7 +365,7 @@ function closeSectionModal() {
     document.getElementById('section-form').reset();
 }
 
-function handleSectionSubmit(e) {
+async function handleSectionSubmit(e) {
     e.preventDefault();
     const id = document.getElementById('edit-section-id').value;
     const name = document.getElementById('section-name-input').value.trim();
@@ -365,19 +382,19 @@ function handleSectionSubmit(e) {
         appState.sections.push({ id: newId, name: name });
     }
 
-    saveState();
+    await saveState();
     closeSectionModal();
     renderAll();
 }
 
-function handleDeleteSection(id, name) {
+async function handleDeleteSection(id, name) {
     if (confirm(`Deseja realmente excluir a seção "${name}"? Todos os itens dela serão excluídos permanentemente.`)) {
         // Filter out section
         appState.sections = appState.sections.filter(s => s.id !== id);
         // Filter out items in this section
         appState.items = appState.items.filter(i => i.sectionId !== id);
         
-        saveState();
+        await saveState();
         renderAll();
     }
 }
@@ -453,7 +470,7 @@ function closeItemModal() {
     currentModalOptions = [];
 }
 
-function handleItemSubmit(e) {
+async function handleItemSubmit(e) {
     e.preventDefault();
     const id = document.getElementById('edit-item-id').value;
     const name = document.getElementById('item-name-input').value.trim();
@@ -509,17 +526,17 @@ function handleItemSubmit(e) {
         appState.items.push(newItem);
     }
 
-    saveState();
+    await saveState();
     closeItemModal();
     renderAll();
 }
 
-function handleDeleteItem() {
+async function handleDeleteItem() {
     const id = document.getElementById('edit-item-id').value;
     const name = document.getElementById('item-name-input').value;
     if (id && confirm(`Excluir permanentemente o item "${name}"?`)) {
         appState.items = appState.items.filter(i => i.id !== id);
-        saveState();
+        await saveState();
         closeItemModal();
         renderAll();
     }
@@ -700,14 +717,14 @@ function handleDataImport(e) {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = function(evt) {
+    reader.onload = async function(evt) {
         try {
             const imported = JSON.parse(evt.target.result);
             
             // Basic schema validation
             if (Array.isArray(imported.sections) && Array.isArray(imported.items)) {
                 appState = imported;
-                saveState();
+                await saveState();
                 renderAll();
                 alert("Dados importados com sucesso!");
             } else {
