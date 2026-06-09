@@ -171,12 +171,6 @@ function renderChecklist() {
                 
                 meta.appendChild(priceSpan);
                 
-                if (storeStr) {
-                    const storeSpan = document.createElement('span');
-                    storeSpan.innerText = `• ${storeStr}`;
-                    meta.appendChild(storeSpan);
-                }
-                
                 if (optionsCount > 1) {
                     const badge = document.createElement('span');
                     badge.className = 'item-badge';
@@ -647,14 +641,30 @@ function renderModalOptionsList(activeId = null) {
             actionsRow.appendChild(document.createElement('div'));
         }
 
+        const actionsGroup = document.createElement('div');
+        actionsGroup.style.display = 'flex';
+        actionsGroup.style.gap = '0.5rem';
+
+        const editOptBtn = document.createElement('button');
+        editOptBtn.type = 'button';
+        editOptBtn.className = 'delete-opt-btn';
+        editOptBtn.style.color = 'var(--text-muted)';
+        editOptBtn.innerHTML = '<i data-lucide="edit-3" style="width:12px; height:12px;"></i> Editar';
+        editOptBtn.addEventListener('click', () => {
+            showOptionEditorPanel(opt, true);
+        });
+
         const deleteOptBtn = document.createElement('button');
         deleteOptBtn.type = 'button';
         deleteOptBtn.className = 'delete-opt-btn';
-        deleteOptBtn.innerText = 'Excluir';
+        deleteOptBtn.innerHTML = '<i data-lucide="trash-2" style="width:12px; height:12px;"></i> Excluir';
         deleteOptBtn.addEventListener('click', () => {
             deleteOptionFromModal(opt.id, currentActiveId);
         });
-        actionsRow.appendChild(deleteOptBtn);
+        
+        actionsGroup.appendChild(editOptBtn);
+        actionsGroup.appendChild(deleteOptBtn);
+        actionsRow.appendChild(actionsGroup);
 
         details.appendChild(titleRow);
         details.appendChild(actionsRow);

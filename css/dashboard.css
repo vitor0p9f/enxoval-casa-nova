@@ -7,7 +7,14 @@
 
 .backup-actions {
     display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-top: 1rem;
     gap: 0.5rem;
+}
+
+.backup-actions .btn {
+    width: 100%;
 }
 
 .dashboard-content {
@@ -16,12 +23,13 @@
     gap: 2rem;
     width: 100%;
     margin-top: 1rem;
+    min-width: 0;
 }
 
 .metrics-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1.5rem;
+    grid-template-columns: 1fr; /* Mobile first: 1 col */
+    gap: 1rem;
 }
 
 .metric-card {
@@ -138,6 +146,7 @@
     display: flex;
     flex-direction: column;
     min-height: 250px;
+    min-width: 0;
 }
 
 .breakdown-title {
@@ -149,6 +158,7 @@
 .table-responsive {
     width: 100%;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .breakdown-table {
@@ -181,27 +191,27 @@
 }
 
 /* ==========================================
-   RESPONSIVE DASHBOARD STYLING
+   RESPONSIVE DASHBOARD STYLING (Mobile First Expansions)
    ========================================== */
-@media (max-width: 1024px) {
+@media (min-width: 768px) {
+    .backup-actions {
+        flex-direction: row;
+        width: auto;
+        margin-top: 0;
+    }
+
+    .backup-actions .btn {
+        width: auto;
+    }
+
     .metrics-grid {
         grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
     }
 }
 
-@media (max-width: 768px) {
+@media (min-width: 1024px) {
     .metrics-grid {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-    }
-    
-    .backup-actions {
-        width: 100%;
-        margin-top: 1rem;
-        flex-direction: column;
-    }
-    
-    .backup-actions .btn {
-        width: 100%;
+        grid-template-columns: repeat(4, 1fr);
     }
 }

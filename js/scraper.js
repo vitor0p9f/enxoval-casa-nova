@@ -342,15 +342,28 @@ async function parseExternalMetadata(url) {
 }
 
 // Option Editor Panel Actions
-function showOptionEditorPanel(data = null) {
+function showOptionEditorPanel(data = null, isEdit = false) {
     const panel = document.getElementById('option-editor-panel');
     panel.style.display = 'flex';
 
-    if (data) {
+    if (data && !isEdit) {
         document.getElementById('opt-name').value = data.storeName;
         document.getElementById('opt-price').value = data.price > 0 ? data.price : '';
         document.getElementById('opt-image').value = data.imageUrl;
-        editingOptionId = null; // Adding brand new
+        editingOptionId = null;
+        document.getElementById('save-option-btn').innerText = 'Adicionar Opção';
+    } else if (data && isEdit) {
+        document.getElementById('opt-name').value = data.storeName || '';
+        document.getElementById('opt-price').value = data.price > 0 ? data.price : '';
+        document.getElementById('opt-image').value = data.imageUrl || '';
+        editingOptionId = data.id;
+        document.getElementById('save-option-btn').innerText = 'Salvar Alterações';
+    } else {
+        document.getElementById('opt-name').value = '';
+        document.getElementById('opt-price').value = '';
+        document.getElementById('opt-image').value = '';
+        editingOptionId = null;
+        document.getElementById('save-option-btn').innerText = 'Adicionar Opção';
     }
 }
 

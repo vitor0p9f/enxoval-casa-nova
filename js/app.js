@@ -99,6 +99,10 @@ function initEventListeners() {
     document.getElementById('scrape-btn').addEventListener('click', handleLinkScrape);
     document.getElementById('cancel-option-btn').addEventListener('click', hideOptionEditorPanel);
     document.getElementById('save-option-btn').addEventListener('click', saveCurrentOption);
+    document.getElementById('add-manual-opt-btn').addEventListener('click', () => {
+        clearScraperAlert();
+        showOptionEditorPanel(null, false);
+    });
 
     // Backup Triggers
     document.getElementById('export-btn').addEventListener('click', handleDataExport);
