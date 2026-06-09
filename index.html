@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enxoval de Vítor & Maiara</title>
+    <!-- Google Fonts: Playfair Display e Montserrat -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap"
+        rel="stylesheet">
+    <!-- Configurações Estáticas (Variaveis de ambiente) -->
+    <script src="config.js"></script>
+    <!-- SQL.js WebAssembly SQLite CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Estilos modulares do sistema de design -->
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/checklist.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+
+<body>
+
+    <!-- Floating Navigation Dots -->
+    <nav class="side-nav" id="side-nav">
+        <a href="#hero-page" class="nav-dot active" title="Capa" data-target="hero-page"></a>
+        <a href="#checklist-page" class="nav-dot" title="Checklist" data-target="checklist-page"></a>
+        <a href="#dashboard-page" class="nav-dot" title="Relatório" data-target="dashboard-page"></a>
+    </nav>
+
+    <!-- Page Container -->
+    <main class="pages-container">
+
+        <!-- Page 1: Hero Page (Capa) -->
+        <section id="hero-page" class="page-section hero-section">
+            <div class="canva-frame hero-cover-frame">
+                <div class="hero-content">
+                    <div class="ornament-top">✦ ✦ ✦</div>
+                    <h1 class="hero-title">O Enxoval de<br><span class="highlight">Vítor & Maiara</span></h1>
+                    <p class="hero-subtitle">Planejando com carinho cada detalhe do nosso novo lar.</p>
+
+                    <div class="ornament-bottom">
+                        <a href="#checklist-page" class="scroll-down-btn" id="scroll-down-btn">
+                            <span>Começar checklist</span>
+                            <i data-lucide="chevron-down" class="bounce-icon"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Page 2: Checklist Page -->
+        <section id="checklist-page" class="page-section checklist-section">
+            <div class="canva-frame">
+                <header class="section-header">
+                    <div class="header-titles">
+                        <span class="section-badge">Organizador</span>
+                        <h2 class="section-title">Checklist do novo lar</h2>
+                        <p class="section-desc">Adicione itens, gerencie opções de preços e arraste-os entre as seções.
+                        </p>
+                    </div>
+
+                    <!-- Search and Actions Bar -->
+                    <div class="actions-bar">
+                        <div class="search-box">
+                            <i data-lucide="search" class="search-icon"></i>
+                            <input type="text" id="search-input" placeholder="Buscar item no enxoval...">
+                        </div>
+                        <div class="action-buttons">
+                            <button id="add-section-btn" class="btn btn-secondary">
+                                <i data-lucide="folder-plus"></i> Nova seção
+                            </button>
+                            <button id="add-item-btn" class="btn btn-primary">
+                                <i data-lucide="plus-circle"></i> Novo item
+                            </button>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Checklist Columns Container -->
+                <div class="checklist-columns-container">
+                    <div class="two-columns-grid" id="sections-container">
+                        <!-- Sections will be rendered here dynamically via app.js -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Page 3: Dashboard / Reports -->
+        <section id="dashboard-page" class="page-section dashboard-section">
+            <div class="canva-frame">
+                <header class="section-header">
+                    <div class="header-titles">
+                        <span class="section-badge">Resumo financeiro</span>
+                        <h2 class="section-title">Relatório geral do enxoval</h2>
+                        <p class="section-desc">Estatísticas de custos baseadas nas opções e progresso dos itens.</p>
+                    </div>
+
+                    <div class="backup-actions">
+                        <button id="download-db-btn" class="btn btn-primary btn-sm"
+                            title="Baixar arquivo SQLite (.db) completo">
+                            <i data-lucide="database"></i> Baixar banco (.db)
+                        </button>
+                        <button id="export-btn" class="btn btn-secondary btn-sm" title="Salvar dados em arquivo JSON">
+                            <i data-lucide="download"></i> Exportar JSON
+                        </button>
+                        <button id="import-btn-trigger" class="btn btn-secondary btn-sm"
+                            title="Carregar dados de arquivo JSON">
+                            <i data-lucide="upload"></i> Importar JSON
+                        </button>
+                        <input type="file" id="import-file-input" accept=".json" style="display: none;">
+                    </div>
+                </header>
+
+                <div class="dashboard-content">
+                    <!-- Metrics Row -->
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-icon-wrap bg-sage">
+                                <i data-lucide="package"></i>
+                            </div>
+                            <div class="metric-info">
+                                <span class="metric-label">Total de itens</span>
+                                <h3 class="metric-value" id="stat-total-items">0</h3>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon-wrap bg-terracotta">
+                                <i data-lucide="check-square"></i>
+                            </div>
+                            <div class="metric-info">
+                                <span class="metric-label">Itens adquiridos</span>
+                                <h3 class="metric-value" id="stat-checked-items">0 <span class="metric-sub"
+                                        id="stat-progress-percent">(0%)</span></h3>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon-wrap bg-gold">
+                                <i data-lucide="dollar-sign"></i>
+                            </div>
+                            <div class="metric-info">
+                                <span class="metric-label">Investimento total</span>
+                                <h3 class="metric-value" id="stat-total-price">R$ 0,00</h3>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon-wrap bg-charcoal">
+                                <i data-lucide="layout"></i>
+                            </div>
+                            <div class="metric-info">
+                                <span class="metric-label">Total de seções</span>
+                                <h3 class="metric-value" id="stat-total-sections">0</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress bar -->
+                    <div class="progress-container-wrap">
+                        <div class="progress-header">
+                            <span>Progresso geral do enxoval</span>
+                            <span id="general-progress-label">0%</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" id="general-progress-fill" style="width: 0%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Breakdown table section -->
+                    <div class="breakdown-container">
+                        <h4 class="breakdown-title">Resumo detalhado por seção</h4>
+                        <div class="table-responsive">
+                            <table class="breakdown-table">
+                                <thead>
+                                    <tr>
+                                        <th>Seção</th>
+                                        <th>Itens cadastrados</th>
+                                        <th>Progresso</th>
+                                        <th>Valor estimado (1ª opção)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dashboard-breakdown-body">
+                                    <!-- Dynamic rows from app.js -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL: Create/Edit Item -->
+    <div class="modal-backdrop" id="item-modal">
+        <div class="modal-container">
+            <header class="modal-header">
+                <h3 class="modal-title" id="modal-item-title">Adicionar novo item</h3>
+                <button class="modal-close-btn" id="close-item-modal-btn">
+                    <i data-lucide="x"></i>
+                </button>
+            </header>
+
+            <form id="item-form" class="modal-body">
+                <input type="hidden" id="edit-item-id">
+
+                <div class="form-group">
+                    <label for="item-name-input">Nome do item <span class="required">*</span></label>
+                    <input type="text" id="item-name-input" placeholder="Ex: Jogo de Panelas Antiaderentes" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="item-section-select">Seção <span class="required">*</span></label>
+                        <select id="item-section-select" required>
+                            <!-- Dynamically populated -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="item-status-select">Status</label>
+                        <select id="item-status-select">
+                            <option value="pending">Pendente</option>
+                            <option value="acquired">Adquirido</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Primary Option Image Preview -->
+                <div id="primary-option-preview-container" class="primary-option-preview-container" style="display: none; flex-direction: column; align-items: center; margin-bottom: 1.5rem; padding: 1rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); background-color: var(--bg-primary);">
+                    <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1rem; color: var(--primary); margin-bottom: 0.5rem;">Primeira opção</span>
+                    <img id="primary-option-img" src="assets/cozy_home_illustration.png" style="max-height: 160px; width: 100%; object-fit: contain; border-radius: var(--radius-sm);" alt="Preview">
+                </div>
+
+                <!-- Product Options Management -->
+                <div class="options-section">
+                    <div class="options-header">
+                        <h4>Opções de lojas & links</h4>
+                        <span class="options-subtitle">Adicione opções para comparar preços. A primeira opção será usada
+                            nos totais.</span>
+                    </div>
+
+                    <!-- Scraping input -->
+                    <div class="scraper-box">
+                        <div class="scraper-input-group">
+                            <input type="url" id="option-link-input"
+                                placeholder="Cole o link do produto (Amazon, Shopee, etc.)">
+                            <button type="button" class="btn btn-secondary btn-md" id="scrape-btn">
+                                <span id="scrape-btn-text">Importar link</span>
+                                <span class="spinner" id="scrape-spinner" style="display: none;"></span>
+                            </button>
+                        </div>
+                        <p class="scraper-tip">Metadados (nome, foto e preço) serão buscados automaticamente se
+                            possível.</p>
+                    </div>
+
+                    <!-- Loading / Error Alerts -->
+                    <div id="scraper-status-message" class="scraper-alert" style="display: none;"></div>
+
+                    <!-- Selected/Add option preview panel (editable fields for scraped details) -->
+                    <div class="option-editor-panel" id="option-editor-panel" style="display: none;">
+                        <h5>Editar detalhes da opção</h5>
+                        <div class="form-row">
+                            <div class="form-group percent-60">
+                                <label for="opt-name">Nome da loja / detalhe</label>
+                                <input type="text" id="opt-name" placeholder="Ex: Amazon - Inox 5 Peças">
+                            </div>
+                            <div class="form-group percent-40">
+                                <label for="opt-price">Preço (R$)</label>
+                                <input type="number" step="0.01" min="0" id="opt-price" placeholder="0.00">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="opt-image">URL da foto</label>
+                            <input type="text" id="opt-image" placeholder="Cole URL da imagem ou deixe em branco">
+                        </div>
+                        <div class="option-editor-actions">
+                            <button type="button" class="btn btn-sm btn-secondary"
+                                id="cancel-option-btn">Cancelar</button>
+                            <button type="button" class="btn btn-sm btn-primary" id="save-option-btn">Adicionar
+                                Opção</button>
+                        </div>
+                    </div>
+
+                    <!-- Options list container -->
+                    <div class="options-list" id="options-list-container">
+                        <!-- Dynamic list of store options -->
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="delete-item-btn" style="display: none;">
+                        <i data-lucide="trash-2"></i> Excluir item
+                    </button>
+                    <div style="flex: 1;"></div>
+                    <button type="button" class="btn btn-secondary" id="cancel-item-btn">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="save-item-btn-submit">Salvar item</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: Add/Edit Section -->
+    <div class="modal-backdrop" id="section-modal">
+        <div class="modal-container modal-sm">
+            <header class="modal-header">
+                <h3 class="modal-title" id="section-modal-title">Nova seção</h3>
+                <button class="modal-close-btn" id="close-section-modal-btn">
+                    <i data-lucide="x"></i>
+                </button>
+            </header>
+
+            <form id="section-form" class="modal-body">
+                <input type="hidden" id="edit-section-id">
+                <div class="form-group">
+                    <label for="section-name-input">Nome da seção <span class="required">*</span></label>
+                    <input type="text" id="section-name-input" placeholder="Ex: Cozinha, Quarto, Sala..." required>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancel-section-btn">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar seção</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: Confirmar Desmarcação -->
+    <div class="modal-backdrop" id="confirm-uncheck-modal">
+        <div class="modal-container modal-sm">
+            <header class="modal-header">
+                <h3 class="modal-title">Desmarcar item</h3>
+                <button class="modal-close-btn" id="close-confirm-uncheck-btn" type="button">
+                    <i data-lucide="x"></i>
+                </button>
+            </header>
+            <div class="modal-body">
+                <p
+                    style="font-size: 0.95rem; color: var(--text-dark); text-align: center; line-height: 1.5; margin: 0;">
+                    Tem certeza que deseja desmarcar o item <strong id="uncheck-item-name"></strong>?<br>A data de
+                    aquisição será removida.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancel-uncheck-btn">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirm-uncheck-btn-submit">Sim, desmarcar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts modulares da aplicação -->
+    <script src="js/db.js"></script>
+    <script src="js/scraper.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>

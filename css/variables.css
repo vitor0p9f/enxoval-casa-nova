@@ -1,0 +1,29 @@
+/* ==========================================
+   DESIGN SYSTEM & VARIABLES
+   ========================================== */
+:root {
+    --bg-primary: #F8F5F0;     /* Creme quente (Canva canvas) */
+    --text-dark: #2D2D2A;      /* Grafite escuro elegante */
+    --text-muted: #736F68;     /* Cinza médio quente */
+    --primary: #C57B67;        /* Terracotta / Rust */
+    --primary-hover: #B06855;
+    --primary-light: #F9EFEA;
+    --secondary: #879782;      /* Sage Green / Verde sálvia */
+    --secondary-hover: #758570;
+    --secondary-light: #F0F3EF;
+    --gold: #D2A850;           /* Dourado / Brass */
+    --gold-light: #FAF6EB;
+    --white: #FFFFFF;
+    --border-color: #E6DFD4;
+    --border-dashed: #C1B5A3;
+    
+    --shadow-sm: 0 4px 12px rgba(45, 45, 42, 0.04);
+    --shadow-md: 0 8px 24px rgba(45, 45, 42, 0.08);
+    --shadow-lg: 0 16px 40px rgba(45, 45, 42, 0.12);
+    
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 24px;
+    
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}

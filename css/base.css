@@ -1,0 +1,149 @@
+/* ==========================================
+   RESET & BASE STYLES
+   ========================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+    font-size: 16px;
+}
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    background-color: var(--bg-primary);
+    color: var(--text-dark);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 10px;
+}
+::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+}
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: var(--radius-sm);
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
+
+/* ==========================================
+   FLOATING SIDE NAVIGATION
+   ========================================== */
+.side-nav {
+    position: fixed;
+    right: 2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    z-index: 100;
+}
+
+.nav-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid var(--text-muted);
+    background: transparent;
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.nav-dot.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    transform: scale(1.3);
+}
+
+.nav-dot:hover {
+    border-color: var(--primary);
+}
+
+/* ==========================================
+   LAYOUT STRUCTURE (CANVA FRAMES)
+   ========================================== */
+.pages-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.page-section {
+    min-height: 100vh;
+    padding: 2.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    box-sizing: border-box;
+}
+
+/* Canva Elegant Paper Border Frame */
+.canva-frame {
+    width: 100%;
+    max-width: 1200px;
+    height: auto; /* Altura flui dinamicamente por padrão */
+    min-height: calc(100vh - 5rem);
+    background-color: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: 3rem;
+    position: relative;
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+}
+
+/* Outer dashed line typical of Canva planners */
+.canva-frame::before {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    right: 15px;
+    bottom: 15px;
+    border: 1px dashed var(--border-dashed);
+    border-radius: calc(var(--radius-lg) - 10px);
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+/* Responsive Canva Frame Heights */
+@media (max-width: 1024px) {
+    .side-nav {
+        display: none;
+    }
+    
+    .canva-frame {
+        padding: 2rem;
+        height: auto; /* Altura flui em tablets */
+        min-height: calc(100vh - 5rem);
+    }
+}
+
+@media (max-width: 768px) {
+    .page-section {
+        padding: 1rem;
+        min-height: auto;
+    }
+    
+    .canva-frame {
+        padding: 1.5rem 1.2rem;
+        min-height: auto;
+        height: auto; /* Rola na tela inteira do celular */
+    }
+}

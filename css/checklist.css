@@ -1,0 +1,523 @@
+/* ==========================================
+   PAGE 1: HERO COVER
+   ========================================== */
+.hero-section {
+    background-color: var(--bg-primary);
+}
+
+.hero-section .canva-frame {
+    justify-content: space-between;
+    align-items: center;
+    text-align: center;
+    background-color: var(--white);
+}
+
+.hero-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+    padding: 2rem 0;
+}
+
+.ornament-top {
+    font-size: 1.5rem;
+    color: var(--gold);
+    margin-bottom: 1rem;
+    letter-spacing: 0.5rem;
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    line-height: 1.2;
+    color: var(--text-dark);
+    margin-bottom: 1rem;
+    font-weight: 700;
+}
+
+.hero-title .highlight {
+    color: var(--primary);
+    font-style: italic;
+    font-weight: 400;
+}
+
+.hero-subtitle {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    font-weight: 400;
+    max-width: 600px;
+    margin-bottom: 2.5rem;
+    letter-spacing: 0.05rem;
+}
+
+.ornament-bottom {
+    position: absolute;
+    bottom: 2.5rem;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.scroll-down-btn {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: var(--text-dark);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.15rem;
+    gap: 0.5rem;
+    transition: var(--transition);
+}
+
+.scroll-down-btn:hover {
+    color: var(--primary);
+}
+
+.bounce-icon {
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-8px);
+    }
+    60% {
+        transform: translateY(-4px);
+    }
+}
+
+.hero-cover-frame {
+    position: relative;
+    background-image: linear-gradient(rgba(45, 45, 42, 0.45), rgba(45, 45, 42, 0.45)), url('../assets/cozy_home_illustration.png');
+    background-size: cover;
+    background-position: center;
+    color: var(--white) !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: center !important;
+    align-items: center;
+    text-align: center;
+    height: calc(100vh - 5rem);
+    min-height: auto;
+}
+
+.hero-cover-frame .hero-title {
+    color: var(--white);
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.hero-cover-frame .hero-title .highlight {
+    color: #F8D5C8;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.hero-cover-frame .hero-subtitle {
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+    font-weight: 400;
+}
+
+.hero-cover-frame .scroll-down-btn {
+    color: var(--white);
+    text-shadow: 0 1px 5px rgba(0, 0, 0, 0.5);
+}
+
+.hero-cover-frame .scroll-down-btn:hover {
+    color: #F8D5C8;
+}
+
+.hero-cover-frame::before {
+    border-color: rgba(255, 255, 255, 0.35) !important;
+}
+
+/* Estrelas amarelas brilhantes na capa overlay */
+.hero-cover-frame .ornament-top {
+    color: #F5C75D !important;
+    text-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
+}
+
+/* ==========================================
+   PAGE 2: CHECKLIST
+   ========================================== */
+.checklist-section {
+    background-color: var(--bg-primary);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 2.5rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 1.5rem;
+    z-index: 2;
+}
+
+.section-badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.15rem;
+    color: var(--gold);
+    margin-bottom: 0.4rem;
+}
+
+.section-title {
+    font-size: 2.2rem;
+    color: var(--text-dark);
+    margin-bottom: 0.3rem;
+}
+
+.section-desc {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    font-weight: 300;
+}
+
+/* Search and Actions Bar */
+.actions-bar {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.search-box {
+    position: relative;
+    width: 280px;
+}
+
+.search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    color: var(--text-muted);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+/* Two Columns Masonry Grid */
+.checklist-columns-container {
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.two-columns-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+    align-items: start;
+}
+
+/* Section Card */
+.section-card {
+    background-color: var(--bg-primary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+}
+
+.section-card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.section-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.section-card-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.section-card-title {
+    font-size: 1.35rem;
+    color: var(--text-dark);
+}
+
+.section-item-count {
+    font-size: 0.8rem;
+    background-color: var(--border-color);
+    color: var(--text-muted);
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.section-actions {
+    display: flex;
+    gap: 0.25rem;
+    opacity: 0.4;
+    transition: var(--transition);
+}
+
+.section-card:hover .section-actions {
+    opacity: 1;
+}
+
+/* Items list wrapper */
+.items-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-height: 100px;
+    padding: 0.5rem;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+}
+
+/* Drag Over visual state */
+.items-container.drag-over {
+    background-color: var(--secondary-light);
+    border: 2px dashed var(--secondary);
+}
+
+/* Item Card */
+.item-card {
+    background-color: var(--white);
+    border-radius: var(--radius-sm);
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    cursor: grab;
+    user-select: none;
+    transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+}
+
+.item-card:active {
+    cursor: grabbing;
+}
+
+.item-card.dragging {
+    opacity: 0.3;
+    border: 1px dashed var(--border-dashed);
+    background-color: var(--bg-primary);
+    box-shadow: none;
+}
+
+.item-checkbox {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--border-dashed);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition);
+    background-color: var(--white);
+    flex-shrink: 0;
+}
+
+.item-checkbox i {
+    width: 14px;
+    height: 14px;
+    color: var(--white);
+    display: none;
+}
+
+.item-card.acquired .item-checkbox {
+    background-color: var(--secondary);
+    border-color: var(--secondary);
+}
+
+.item-card.acquired .item-checkbox i {
+    display: block;
+}
+
+.item-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.item-name {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: var(--transition);
+}
+
+.item-card.acquired .item-name {
+    text-decoration: line-through;
+    color: var(--text-muted);
+}
+
+.item-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 0.15rem;
+}
+
+.item-price {
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.item-card.acquired .item-price {
+    color: var(--text-muted);
+}
+
+.item-badge {
+    background-color: var(--gold-light);
+    color: #9A7724;
+    padding: 0.05rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 500;
+}
+
+.item-acquired-date {
+    background-color: var(--secondary-light);
+    color: var(--secondary-hover);
+    padding: 0.05rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+}
+
+.item-drag-handle {
+    cursor: grab;
+    color: var(--border-dashed);
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+
+.item-drag-handle:active {
+    cursor: grabbing;
+}
+
+.item-drag-handle:hover {
+    color: var(--text-dark);
+    background-color: var(--bg-primary);
+}
+
+/* Empty section placeholder */
+.empty-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem 0;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    text-align: center;
+    pointer-events: none;
+}
+
+.empty-placeholder i {
+    width: 28px;
+    height: 28px;
+    margin-bottom: 0.4rem;
+    opacity: 0.5;
+}
+
+/* Section Drag Handles and Grips */
+.section-drag-handle {
+    cursor: grab;
+    color: var(--border-dashed);
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+    margin-right: 0.5rem;
+}
+
+.section-drag-handle:active {
+    cursor: grabbing;
+}
+
+.section-drag-handle:hover {
+    color: var(--text-dark);
+    background-color: var(--white);
+}
+
+.section-card.dragging-section {
+    opacity: 0.3;
+    border: 2px dashed var(--border-dashed);
+    background-color: var(--bg-primary);
+    box-shadow: none;
+}
+
+.section-card.drag-over-section {
+    border: 2px dashed var(--primary);
+    background-color: var(--primary-light);
+    transform: scale(0.99);
+}
+
+/* ==========================================
+   RESPONSIVE CHECKLIST STYLING
+   ========================================== */
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 2.2rem;
+    }
+    
+    .hero-cover-frame {
+        height: auto;
+        min-height: calc(100vh - 2rem);
+    }
+    
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1.2rem;
+    }
+    
+    .actions-bar {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .search-box {
+        width: 100%;
+    }
+    
+    .two-columns-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+}

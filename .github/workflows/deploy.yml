@@ -1,0 +1,30 @@
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches:
+      - main # Dispara a cada push na branch principal
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    concurrency: ci-${{ github.ref }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v4
+
+      - name: Configurar Credenciais do Banco de Dados 🔧
+        run: |
+          # Substitui os valores vazios padrão no arquivo config.js pelas credenciais guardadas no GitHub Secrets
+          sed -i "s|DATABASE_URL: 'enxoval.db'|DATABASE_URL: '${{ secrets.DATABASE_URL }}'|g" config.js
+          sed -i "s|DATABASE_TOKEN: ''|DATABASE_TOKEN: '${{ secrets.DATABASE_TOKEN }}'|g" config.js
+          echo "Credenciais do banco de dados configuradas com sucesso no arquivo de build!"
+
+      - name: Deploy to GitHub Pages 🚀
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: . # Diretório com os arquivos estáticos do site
+          branch: gh-pages # Branch destino do deploy
