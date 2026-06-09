@@ -3,20 +3,29 @@ name: Deploy GitHub Pages
 on:
   push:
     branches:
-      - main # Dispara a cada push na branch principal
+      - main
 
+# Necessário para o deploy nativo no GitHub Pages
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
 
 jobs:
   build-and-deploy:
-    concurrency: ci-${{ github.ref }}
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout 🛎️
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configurar Credenciais do Banco de Dados 🔧
+      - name: Configurar Credenciais do Banco de Dados
         run: |
           # Pega de secrets (caso tenha criado como Secret) ou vars (caso tenha criado como Variável)
           URL="${{ secrets.DATABASE_URL || vars.DATABASE_URL }}"
@@ -31,8 +40,14 @@ jobs:
           EOF
           echo "Credenciais injetadas no config.js!"
 
-      - name: Deploy to GitHub Pages 🚀
-        uses: JamesIves/github-pages-deploy-action@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+        
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          folder: . # Diretório com os arquivos estáticos do site
-          branch: gh-pages # Branch destino do deploy
+          path: '.' # Faz o upload de todos os arquivos da pasta raiz do projeto
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
