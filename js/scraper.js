@@ -347,21 +347,24 @@ function showOptionEditorPanel(data = null, isEdit = false) {
     panel.style.display = 'flex';
 
     if (data && !isEdit) {
-        document.getElementById('opt-name').value = data.storeName;
+        document.getElementById('opt-name').value = data.storeName || '';
         document.getElementById('opt-price').value = data.price > 0 ? data.price : '';
-        document.getElementById('opt-image').value = data.imageUrl;
+        document.getElementById('opt-image').value = data.imageUrl || '';
+        document.getElementById('opt-url').value = data.url || '';
         editingOptionId = null;
         document.getElementById('save-option-btn').innerText = 'Adicionar Opção';
     } else if (data && isEdit) {
         document.getElementById('opt-name').value = data.storeName || '';
         document.getElementById('opt-price').value = data.price > 0 ? data.price : '';
         document.getElementById('opt-image').value = data.imageUrl || '';
+        document.getElementById('opt-url').value = data.url || '';
         editingOptionId = data.id;
         document.getElementById('save-option-btn').innerText = 'Salvar Alterações';
     } else {
         document.getElementById('opt-name').value = '';
         document.getElementById('opt-price').value = '';
         document.getElementById('opt-image').value = '';
+        document.getElementById('opt-url').value = '';
         editingOptionId = null;
         document.getElementById('save-option-btn').innerText = 'Adicionar Opção';
     }
@@ -372,6 +375,7 @@ function hideOptionEditorPanel() {
     document.getElementById('opt-name').value = '';
     document.getElementById('opt-price').value = '';
     document.getElementById('opt-image').value = '';
+    document.getElementById('opt-url').value = '';
     editingOptionId = null;
 }
 

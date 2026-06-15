@@ -551,7 +551,7 @@ function saveCurrentOption() {
     const storeName = document.getElementById('opt-name').value.trim() || 'Loja';
     const priceVal = parseFloat(document.getElementById('opt-price').value) || 0;
     const imageUrl = document.getElementById('opt-image').value.trim();
-    const url = document.getElementById('option-link-input').value.trim();
+    const url = document.getElementById('opt-url').value.trim();
 
     if (editingOptionId) {
         // Edit existing option in list
@@ -560,7 +560,7 @@ function saveCurrentOption() {
             opt.storeName = storeName;
             opt.price = priceVal;
             opt.imageUrl = imageUrl;
-            if (url) opt.url = url;
+            opt.url = url;
         }
     } else {
         // Add new option

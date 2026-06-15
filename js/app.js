@@ -142,7 +142,8 @@ function initEventListeners() {
     document.getElementById('save-option-btn').addEventListener('click', saveCurrentOption);
     document.getElementById('add-manual-opt-btn').addEventListener('click', () => {
         clearScraperAlert();
-        showOptionEditorPanel(null, false);
+        const typedUrl = document.getElementById('option-link-input').value.trim();
+        showOptionEditorPanel(typedUrl ? { url: typedUrl } : null, false);
     });
 
     // Backup Triggers
