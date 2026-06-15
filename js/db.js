@@ -5,10 +5,11 @@ let SQL = null;
 let db = null;
 let libsqlClient = null;
 
-// Global App State
 let appState = {
     sections: [],
-    items: []
+    items: [],
+    deletedSections: [],
+    deletedItems: []
 };
 
 // Sub-state for building/editing the current item options in modal
@@ -261,11 +262,13 @@ function loadStateFromSql() {
         
         appState = {
             sections,
-            items: Object.values(itemsMap)
+            items: Object.values(itemsMap),
+            deletedSections: [],
+            deletedItems: []
         };
     } catch (e) {
         console.error("Erro ao carregar dados do SQLite:", e);
-        appState = { sections: [], items: [] };
+        appState = { sections: [], items: [], deletedSections: [], deletedItems: [] };
     }
 }
 
@@ -352,12 +355,14 @@ async function loadStateFromTurso() {
 
         appState = {
             sections,
-            items: Object.values(itemsMap)
+            items: Object.values(itemsMap),
+            deletedSections: [],
+            deletedItems: []
         };
         console.log("[*] Dados carregados do Turso.");
     } catch (e) {
         console.error("Erro ao carregar dados do Turso:", e);
-        appState = { sections: [], items: [] };
+        appState = { sections: [], items: [], deletedSections: [], deletedItems: [] };
     }
 }
 
@@ -365,37 +370,104 @@ async function saveStateToTurso() {
     if (!libsqlClient) return;
     try {
         console.log("[*] Salvando alterações no Turso...");
-        const statements = [
-            "DELETE FROM item_options;",
-            "DELETE FROM items;",
-            "DELETE FROM sections;"
-        ];
+        const statements = [];
         
         appState.sections.forEach((sec, idx) => {
             statements.push({
-                sql: "INSERT INTO sections (id, name, position) VALUES (?, ?, ?);",
+                sql: "INSERT OR REPLACE INTO sections (id, name, position) VALUES (?, ?, ?);",
                 args: [sec.id, sec.name, idx]
             });
         });
         
         appState.items.forEach(item => {
             statements.push({
-                sql: "INSERT INTO items (id, section_id, name, status, active_option_id, acquired_at) VALUES (?, ?, ?, ?, ?, ?);",
+                sql: "INSERT OR REPLACE INTO items (id, section_id, name, status, active_option_id, acquired_at) VALUES (?, ?, ?, ?, ?, ?);",
                 args: [item.id, item.sectionId, item.name, item.status, item.activeOptionId || null, item.acquiredAt || null]
             });
             
+            statements.push({
+                sql: "DELETE FROM item_options WHERE item_id = ?;",
+                args: [item.id]
+            });
+
             item.options.forEach(opt => {
                 statements.push({
-                    sql: "INSERT INTO item_options (id, item_id, store_name, price, url, image_url) VALUES (?, ?, ?, ?, ?, ?);",
+                    sql: "INSERT OR REPLACE INTO item_options (id, item_id, store_name, price, url, image_url) VALUES (?, ?, ?, ?, ?, ?);",
                     args: [opt.id, item.id, opt.storeName || null, opt.price, opt.url || null, opt.imageUrl || null]
                 });
             });
         });
         
+        if (appState.deletedItems && appState.deletedItems.length > 0) {
+            appState.deletedItems.forEach(id => {
+                statements.push({ sql: "DELETE FROM items WHERE id = ?;", args: [id] });
+                statements.push({ sql: "DELETE FROM item_options WHERE item_id = ?;", args: [id] });
+            });
+        }
+        if (appState.deletedSections && appState.deletedSections.length > 0) {
+            appState.deletedSections.forEach(id => {
+                statements.push({ sql: "DELETE FROM sections WHERE id = ?;", args: [id] });
+            });
+        }
+        
         await libsqlClient.batch(statements, "write");
+        
+        appState.deletedItems = [];
+        appState.deletedSections = [];
+        
         console.log("[*] Sincronização com o Turso concluída com sucesso.");
     } catch (e) {
         console.error("Erro ao salvar dados no Turso:", e);
+    }
+}
+
+async function fetchRemoteState() {
+    if (!libsqlClient) return null;
+    try {
+        const sectionsResult = await libsqlClient.execute("SELECT * FROM sections ORDER BY position ASC;");
+        const itemsResult = await libsqlClient.execute("SELECT * FROM items;");
+        const optionsResult = await libsqlClient.execute("SELECT * FROM item_options;");
+
+        const sections = sectionsResult.rows.map(row => ({
+            id: row.id,
+            name: row.name,
+            position: row.position
+        }));
+
+        const itemsMap = {};
+        itemsResult.rows.forEach(row => {
+            itemsMap[row.id] = {
+                id: row.id,
+                sectionId: row.section_id,
+                name: row.name,
+                status: row.status,
+                activeOptionId: row.active_option_id,
+                acquiredAt: row.acquired_at || null,
+                options: []
+            };
+        });
+
+        optionsResult.rows.forEach(row => {
+            if (itemsMap[row.item_id]) {
+                itemsMap[row.item_id].options.push({
+                    id: row.id,
+                    storeName: row.store_name,
+                    price: row.price,
+                    url: row.url,
+                    imageUrl: row.image_url
+                });
+            }
+        });
+
+        return {
+            sections,
+            items: Object.values(itemsMap),
+            deletedSections: [],
+            deletedItems: []
+        };
+    } catch (e) {
+        console.error("Erro no auto-sync do Turso:", e);
+        return null;
     }
 }
 
@@ -416,25 +488,39 @@ async function saveState() {
     if (!db) return;
     try {
         db.run("BEGIN TRANSACTION;");
-        db.run("DELETE FROM item_options;");
-        db.run("DELETE FROM items;");
-        db.run("DELETE FROM sections;");
         
         appState.sections.forEach((sec, idx) => {
-            db.run("INSERT INTO sections (id, name, position) VALUES (?, ?, ?);", [sec.id, sec.name, idx]);
+            db.run("INSERT OR REPLACE INTO sections (id, name, position) VALUES (?, ?, ?);", [sec.id, sec.name, idx]);
         });
         
         appState.items.forEach(item => {
-            db.run("INSERT INTO items (id, section_id, name, status, active_option_id, acquired_at) VALUES (?, ?, ?, ?, ?, ?);",
+            db.run("INSERT OR REPLACE INTO items (id, section_id, name, status, active_option_id, acquired_at) VALUES (?, ?, ?, ?, ?, ?);",
                 [item.id, item.sectionId, item.name, item.status, item.activeOptionId, item.acquiredAt || null]);
             
+            db.run("DELETE FROM item_options WHERE item_id = ?;", [item.id]);
+
             item.options.forEach(opt => {
-                db.run("INSERT INTO item_options (id, item_id, store_name, price, url, image_url) VALUES (?, ?, ?, ?, ?, ?);",
+                db.run("INSERT OR REPLACE INTO item_options (id, item_id, store_name, price, url, image_url) VALUES (?, ?, ?, ?, ?, ?);",
                     [opt.id, item.id, opt.storeName, opt.price, opt.url, opt.imageUrl]);
             });
         });
+
+        if (appState.deletedItems && appState.deletedItems.length > 0) {
+            appState.deletedItems.forEach(id => {
+                db.run("DELETE FROM items WHERE id = ?;", [id]);
+                db.run("DELETE FROM item_options WHERE item_id = ?;", [id]);
+            });
+        }
+        if (appState.deletedSections && appState.deletedSections.length > 0) {
+            appState.deletedSections.forEach(id => {
+                db.run("DELETE FROM sections WHERE id = ?;", [id]);
+            });
+        }
         
         db.run("COMMIT;");
+        
+        appState.deletedItems = [];
+        appState.deletedSections = [];
         
         const binaryArray = db.export();
         // Persiste no IndexedDB localmente

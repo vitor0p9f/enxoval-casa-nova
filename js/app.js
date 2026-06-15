@@ -9,7 +9,48 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadState();
     setGlobalLoading(false);
     renderAll();
+    startAutoSync();
 });
+
+let autoSyncInterval = null;
+
+function startAutoSync() {
+    if (autoSyncInterval) clearInterval(autoSyncInterval);
+    
+    // Auto-sync every 10 seconds
+    autoSyncInterval = setInterval(async () => {
+        // Do not sync if search is focused
+        const searchInput = document.getElementById('search-input');
+        if (searchInput && document.activeElement === searchInput) return;
+        
+        // Do not sync if any modal is open
+        const modals = document.querySelectorAll('.modal.open');
+        if (modals.length > 0) return;
+        
+        // Do not sync if a drag operation is in progress
+        if (typeof draggedType !== 'undefined' && draggedType !== null) return;
+        
+        // Do not sync if there are pending deletions
+        if (appState.deletedItems && appState.deletedItems.length > 0) return;
+        if (appState.deletedSections && appState.deletedSections.length > 0) return;
+
+        if (typeof fetchRemoteState === 'function') {
+            const remoteState = await fetchRemoteState();
+            if (remoteState) {
+                // Ignore the empty arrays for comparison
+                const currentData = JSON.stringify({ sections: appState.sections, items: appState.items });
+                const remoteData = JSON.stringify({ sections: remoteState.sections, items: remoteState.items });
+                
+                if (currentData !== remoteData) {
+                    console.log("[*] Alterações no servidor detectadas. Atualizando a interface...");
+                    appState.sections = remoteState.sections;
+                    appState.items = remoteState.items;
+                    renderAll();
+                }
+            }
+        }
+    }, 10000);
+}
 
 function initScrollDots() {
     const navDots = document.querySelectorAll('.nav-dot');

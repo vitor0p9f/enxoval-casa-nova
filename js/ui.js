@@ -383,6 +383,14 @@ async function handleSectionSubmit(e) {
 
 async function handleDeleteSection(id, name) {
     if (confirm(`Deseja realmente excluir a seção "${name}"? Todos os itens dela serão excluídos permanentemente.`)) {
+        if (!appState.deletedSections) appState.deletedSections = [];
+        appState.deletedSections.push(id);
+        
+        // Also add its items to deletedItems
+        const sectionItems = appState.items.filter(i => i.sectionId === id);
+        if (!appState.deletedItems) appState.deletedItems = [];
+        sectionItems.forEach(i => appState.deletedItems.push(i.id));
+
         // Filter out section
         appState.sections = appState.sections.filter(s => s.id !== id);
         // Filter out items in this section
@@ -529,6 +537,9 @@ async function handleDeleteItem() {
     const id = document.getElementById('edit-item-id').value;
     const name = document.getElementById('item-name-input').value;
     if (id && confirm(`Excluir permanentemente o item "${name}"?`)) {
+        if (!appState.deletedItems) appState.deletedItems = [];
+        appState.deletedItems.push(id);
+
         appState.items = appState.items.filter(i => i.id !== id);
         await saveState();
         closeItemModal();
