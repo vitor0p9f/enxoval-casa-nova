@@ -60,6 +60,23 @@ function renderChecklist() {
             sectionItems = sectionItems.filter(item => item.name.toLowerCase().includes(searchQuery));
         }
 
+        const sortMode = section.sortOrder || 'default';
+        if (sortMode !== 'default') {
+            sectionItems.sort((a, b) => {
+                const getPrice = (item) => {
+                    const activeOpt = item.options.find(o => o.id === item.activeOptionId) || item.options[0];
+                    return activeOpt && typeof activeOpt.price === 'number' ? activeOpt.price : 0;
+                };
+                if (sortMode === 'alpha_asc') return a.name.localeCompare(b.name);
+                if (sortMode === 'alpha_desc') return b.name.localeCompare(a.name);
+                if (sortMode === 'price_asc') return getPrice(a) - getPrice(b);
+                if (sortMode === 'price_desc') return getPrice(b) - getPrice(a);
+                if (sortMode === 'options_asc') return a.options.length - b.options.length;
+                if (sortMode === 'options_desc') return b.options.length - a.options.length;
+                return 0;
+            });
+        }
+
         // Section Card Element
         const sectionCard = document.createElement('div');
         sectionCard.className = 'section-card';
@@ -89,9 +106,28 @@ function renderChecklist() {
         titleWrap.appendChild(title);
         titleWrap.appendChild(count);
         
-        // Actions (Rename, Delete)
+        // Actions (Rename, Delete, Sort)
         const actions = document.createElement('div');
         actions.className = 'section-actions';
+        
+        const sortSelect = document.createElement('select');
+        sortSelect.className = 'section-sort-select';
+        sortSelect.title = 'Ordenar itens';
+        sortSelect.innerHTML = `
+            <option value="default" ${sortMode === 'default' ? 'selected' : ''}>Manual</option>
+            <option value="alpha_asc" ${sortMode === 'alpha_asc' ? 'selected' : ''}>A-Z</option>
+            <option value="alpha_desc" ${sortMode === 'alpha_desc' ? 'selected' : ''}>Z-A</option>
+            <option value="price_asc" ${sortMode === 'price_asc' ? 'selected' : ''}>Menor preço</option>
+            <option value="price_desc" ${sortMode === 'price_desc' ? 'selected' : ''}>Maior preço</option>
+            <option value="options_asc" ${sortMode === 'options_asc' ? 'selected' : ''}>Menos opções</option>
+            <option value="options_desc" ${sortMode === 'options_desc' ? 'selected' : ''}>Mais opções</option>
+        `;
+        sortSelect.addEventListener('click', (e) => e.stopPropagation());
+        sortSelect.addEventListener('change', async (e) => {
+            section.sortOrder = e.target.value;
+            await saveState();
+            renderAll();
+        });
         
         const renameBtn = document.createElement('button');
         renameBtn.className = 'icon-btn';
@@ -111,6 +147,7 @@ function renderChecklist() {
             handleDeleteSection(section.id, section.name);
         });
         
+        actions.appendChild(sortSelect);
         actions.appendChild(renameBtn);
         actions.appendChild(deleteBtn);
         
@@ -617,7 +654,14 @@ function renderModalOptionsList(activeId = null) {
         // Image thumb
         const img = document.createElement('img');
         img.className = 'option-img-thumb';
-        img.src = opt.imageUrl || 'assets/cozy_home_illustration.png'; // Fallback to our cover art
+        let thumbSrc = opt.imageUrl || 'assets/cozy_home_illustration.png';
+        if (opt.imageUrl) {
+            try {
+                const parsed = JSON.parse(opt.imageUrl);
+                if (Array.isArray(parsed) && parsed.length > 0) thumbSrc = parsed[0];
+            } catch(e) {}
+        }
+        img.src = thumbSrc;
         img.onerror = () => { img.src = 'assets/cozy_home_illustration.png'; }; // Handles broken links
 
         // Details
@@ -691,13 +735,102 @@ function renderModalOptionsList(activeId = null) {
     listContainer.setAttribute('data-active-opt-id', currentActiveId);
     
     // Update image preview for primary option
-    const primaryImgEl = document.getElementById('primary-option-img');
-    if (primaryImgEl) {
+    if (primaryImgContainer) {
         const activeOptObj = currentModalOptions.find(o => o.id === currentActiveId);
+        let images = [];
         if (activeOptObj && activeOptObj.imageUrl) {
-            primaryImgEl.src = activeOptObj.imageUrl;
+            try {
+                const parsed = JSON.parse(activeOptObj.imageUrl);
+                if (Array.isArray(parsed)) images = parsed;
+                else images = [activeOptObj.imageUrl];
+            } catch(e) {
+                images = [activeOptObj.imageUrl];
+            }
+        }
+
+        // Clean up old elements
+        let existingImg = document.getElementById('primary-option-img');
+        if (existingImg) existingImg.remove();
+        let existingCarousel = document.getElementById('primary-option-carousel');
+        if (existingCarousel) existingCarousel.remove();
+
+        if (images.length > 1) {
+            // Render carousel
+            const carousel = document.createElement('div');
+            carousel.id = 'primary-option-carousel';
+            carousel.style.position = 'relative';
+            carousel.style.width = '100%';
+            carousel.style.height = '160px';
+            carousel.style.display = 'flex';
+            carousel.style.alignItems = 'center';
+            carousel.style.justifyContent = 'center';
+            carousel.style.overflow = 'hidden';
+            carousel.style.borderRadius = 'var(--radius-sm)';
+
+            const imgEl = document.createElement('img');
+            imgEl.style.maxHeight = '160px';
+            imgEl.style.maxWidth = '100%';
+            imgEl.style.objectFit = 'contain';
+            imgEl.src = images[0];
+
+            let currIdx = 0;
+
+            const prevBtn = document.createElement('button');
+            prevBtn.innerHTML = '&#10094;';
+            prevBtn.style.position = 'absolute';
+            prevBtn.style.left = '5px';
+            prevBtn.style.background = 'rgba(0,0,0,0.5)';
+            prevBtn.style.color = '#fff';
+            prevBtn.style.border = 'none';
+            prevBtn.style.borderRadius = '50%';
+            prevBtn.style.width = '30px';
+            prevBtn.style.height = '30px';
+            prevBtn.style.cursor = 'pointer';
+            prevBtn.style.display = 'flex';
+            prevBtn.style.alignItems = 'center';
+            prevBtn.style.justifyContent = 'center';
+            prevBtn.type = 'button';
+            prevBtn.onclick = (e) => {
+                e.preventDefault();
+                currIdx = (currIdx - 1 + images.length) % images.length;
+                imgEl.src = images[currIdx];
+            };
+
+            const nextBtn = document.createElement('button');
+            nextBtn.innerHTML = '&#10095;';
+            nextBtn.style.position = 'absolute';
+            nextBtn.style.right = '5px';
+            nextBtn.style.background = 'rgba(0,0,0,0.5)';
+            nextBtn.style.color = '#fff';
+            nextBtn.style.border = 'none';
+            nextBtn.style.borderRadius = '50%';
+            nextBtn.style.width = '30px';
+            nextBtn.style.height = '30px';
+            nextBtn.style.cursor = 'pointer';
+            nextBtn.style.display = 'flex';
+            nextBtn.style.alignItems = 'center';
+            nextBtn.style.justifyContent = 'center';
+            nextBtn.type = 'button';
+            nextBtn.onclick = (e) => {
+                e.preventDefault();
+                currIdx = (currIdx + 1) % images.length;
+                imgEl.src = images[currIdx];
+            };
+
+            carousel.appendChild(imgEl);
+            carousel.appendChild(prevBtn);
+            carousel.appendChild(nextBtn);
+            primaryImgContainer.appendChild(carousel);
         } else {
-            primaryImgEl.src = 'assets/cozy_home_illustration.png';
+            // Render standard image
+            const imgEl = document.createElement('img');
+            imgEl.id = 'primary-option-img';
+            imgEl.style.maxHeight = '160px';
+            imgEl.style.width = '100%';
+            imgEl.style.objectFit = 'contain';
+            imgEl.style.borderRadius = 'var(--radius-sm)';
+            imgEl.src = images.length === 1 ? images[0] : 'assets/cozy_home_illustration.png';
+            primaryImgContainer.appendChild(imgEl);
         }
     }
     

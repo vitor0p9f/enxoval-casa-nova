@@ -145,9 +145,14 @@ function createDbTables() {
         CREATE TABLE IF NOT EXISTS sections (
             id TEXT PRIMARY KEY,
             name TEXT NOT NULL,
-            position INTEGER NOT NULL DEFAULT 0
+            position INTEGER NOT NULL DEFAULT 0,
+            sort_order TEXT DEFAULT 'default'
         );
     `);
+    try {
+        db.run("ALTER TABLE sections ADD COLUMN sort_order TEXT DEFAULT 'default';");
+    } catch (e) {}
+
     db.run(`
         CREATE TABLE IF NOT EXISTS items (
             id TEXT PRIMARY KEY,
@@ -181,7 +186,7 @@ function seedDbData(state) {
     try {
         db.run("BEGIN TRANSACTION;");
         state.sections.forEach((sec, idx) => {
-            db.run("INSERT OR REPLACE INTO sections (id, name, position) VALUES (?, ?, ?);", [sec.id, sec.name, idx]);
+            db.run("INSERT OR REPLACE INTO sections (id, name, position, sort_order) VALUES (?, ?, ?, ?);", [sec.id, sec.name, idx, sec.sortOrder || 'default']);
         });
         state.items.forEach(item => {
             db.run("INSERT OR REPLACE INTO items (id, section_id, name, status, active_option_id, acquired_at) VALUES (?, ?, ?, ?, ?, ?);", 
@@ -216,7 +221,8 @@ function loadStateFromSql() {
                 sections.push({
                     id: sec.id,
                     name: sec.name,
-                    position: sec.position
+                    position: sec.position,
+                    sortOrder: sec.sort_order || 'default'
                 });
             });
         }
@@ -279,9 +285,13 @@ async function loadStateFromTurso() {
             CREATE TABLE IF NOT EXISTS sections (
                 id TEXT PRIMARY KEY,
                 name TEXT NOT NULL,
-                position INTEGER NOT NULL DEFAULT 0
+                position INTEGER NOT NULL DEFAULT 0,
+                sort_order TEXT DEFAULT 'default'
             );
         `);
+        try {
+            await libsqlClient.execute("ALTER TABLE sections ADD COLUMN sort_order TEXT DEFAULT 'default';");
+        } catch (e) {}
         await libsqlClient.execute(`
             CREATE TABLE IF NOT EXISTS items (
                 id TEXT PRIMARY KEY,
@@ -325,7 +335,8 @@ async function loadStateFromTurso() {
         const sections = sectionsResult.rows.map(row => ({
             id: row.id,
             name: row.name,
-            position: row.position
+            position: row.position,
+            sortOrder: row.sort_order || 'default'
         }));
 
         const itemsMap = {};
@@ -374,8 +385,8 @@ async function saveStateToTurso() {
         
         appState.sections.forEach((sec, idx) => {
             statements.push({
-                sql: "INSERT OR REPLACE INTO sections (id, name, position) VALUES (?, ?, ?);",
-                args: [sec.id, sec.name, idx]
+                sql: "INSERT OR REPLACE INTO sections (id, name, position, sort_order) VALUES (?, ?, ?, ?);",
+                args: [sec.id, sec.name, idx, sec.sortOrder || 'default']
             });
         });
         
@@ -431,7 +442,8 @@ async function fetchRemoteState() {
         const sections = sectionsResult.rows.map(row => ({
             id: row.id,
             name: row.name,
-            position: row.position
+            position: row.position,
+            sortOrder: row.sort_order || 'default'
         }));
 
         const itemsMap = {};
@@ -490,7 +502,7 @@ async function saveState() {
         db.run("BEGIN TRANSACTION;");
         
         appState.sections.forEach((sec, idx) => {
-            db.run("INSERT OR REPLACE INTO sections (id, name, position) VALUES (?, ?, ?);", [sec.id, sec.name, idx]);
+            db.run("INSERT OR REPLACE INTO sections (id, name, position, sort_order) VALUES (?, ?, ?, ?);", [sec.id, sec.name, idx, sec.sortOrder || 'default']);
         });
         
         appState.items.forEach(item => {

@@ -89,23 +89,7 @@ async function parseExternalMetadata(url) {
 
         let doc = null;
 
-        // 1. MICROLINK DATA (Título, Imagem, Loja) - Fonte primária
-        if (microRes.status === 'fulfilled' && microRes.value.ok) {
-            try {
-                const mlData = await microRes.value.json();
-                if (mlData.status === 'success' && mlData.data) {
-                    if (mlData.data.title) title = mlData.data.title;
-                    if (mlData.data.image?.url) imageUrl = mlData.data.image.url;
-                    else if (mlData.data.logo?.url) imageUrl = mlData.data.logo.url;
-                    
-                    if (mlData.data.publisher) storeName = mlData.data.publisher;
-                }
-            } catch(e) {
-                console.warn("Microlink parse error", e);
-            }
-        }
-
-        // 2. RAW HTML DATA (Para Preço e Fallbacks)
+        // 1. RAW HTML DATA (Obter doc primeiro para LD+JSON)
         if (proxyRes.status === 'fulfilled' && proxyRes.value.ok) {
             try {
                 const proxyData = await proxyRes.value.json();
@@ -115,6 +99,83 @@ async function parseExternalMetadata(url) {
                 }
             } catch(e) {
                 console.warn("Proxy parse error", e);
+            }
+        }
+
+        // 2. EXTRAÇÃO VIA JSON-LD (Prioridade máxima conforme solicitado)
+        let jsonLdImages = [];
+        if (doc) {
+            const jsonLds = doc.querySelectorAll('script[type="application/ld+json"]');
+            for (let script of jsonLds) {
+                try {
+                    const json = JSON.parse(script.innerText);
+                    const findProductData = (obj) => {
+                        if (!obj || typeof obj !== 'object') return;
+                        
+                        if (!title && (obj['@type'] === 'Product' || obj['@type'] === 'ItemPage') && obj.name) {
+                            title = obj.name;
+                        }
+                        
+                        if (obj.image) {
+                            let imgs = Array.isArray(obj.image) ? obj.image : [obj.image];
+                            imgs.forEach(img => {
+                                if (typeof img === 'string') jsonLdImages.push(img);
+                                else if (img && img.url) jsonLdImages.push(img.url);
+                                else if (img && img.contentUrl) jsonLdImages.push(img.contentUrl);
+                            });
+                        }
+                        
+                        if (!price && obj.offers) {
+                            const offerList = Array.isArray(obj.offers) ? obj.offers : [obj.offers];
+                            for (let offer of offerList) {
+                                const p = offer.price || offer.lowPrice || offer.highPrice;
+                                if (p) {
+                                    const parsed = parseFloat(p.toString().replace(/[^0-9.]/g, ''));
+                                    if (!isNaN(parsed) && parsed > 0) {
+                                        price = parsed;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (Array.isArray(obj)) {
+                            obj.forEach(item => findProductData(item));
+                        } else {
+                            for (let k in obj) {
+                                if (obj[k] && typeof obj[k] === 'object') {
+                                    findProductData(obj[k]);
+                                }
+                            }
+                        }
+                    };
+                    findProductData(json);
+                } catch(e){}
+            }
+            if (jsonLdImages.length > 0) {
+                jsonLdImages = [...new Set(jsonLdImages)];
+                if (jsonLdImages.length > 1) {
+                    imageUrl = JSON.stringify(jsonLdImages);
+                } else if (jsonLdImages.length === 1) {
+                    imageUrl = jsonLdImages[0];
+                }
+            }
+        }
+
+        // 3. MICROLINK DATA (Fallback 1: Título, Imagem, Loja se não achar no LD+JSON)
+        if (microRes.status === 'fulfilled' && microRes.value.ok) {
+            try {
+                const mlData = await microRes.value.json();
+                if (mlData.status === 'success' && mlData.data) {
+                    if (!title && mlData.data.title) title = mlData.data.title;
+                    if (!imageUrl) {
+                        if (mlData.data.image?.url) imageUrl = mlData.data.image.url;
+                        else if (mlData.data.logo?.url) imageUrl = mlData.data.logo.url;
+                    }
+                    if (mlData.data.publisher) storeName = mlData.data.publisher;
+                }
+            } catch(e) {
+                console.warn("Microlink parse error", e);
             }
         }
 
@@ -268,47 +329,6 @@ async function parseExternalMetadata(url) {
                             if (price) break;
                         }
                     }
-                }
-            }
-
-            // C: JSON-LD
-            if (!price) {
-                const jsonLds = doc.querySelectorAll('script[type="application/ld+json"]');
-                for (let script of jsonLds) {
-                    try {
-                        const json = JSON.parse(script.innerText);
-                        const findOffers = (obj) => {
-                            if (!obj || typeof obj !== 'object') return null;
-                            if (obj.offers) return obj.offers;
-                            if (obj['@graph']) {
-                                for (let node of obj['@graph']) {
-                                    if (node.offers) return node.offers;
-                                    if (node['@type'] === 'Product' && node.offers) return node.offers;
-                                }
-                            }
-                            if (obj['@type'] === 'Product' && obj.offers) return obj.offers;
-                            for (let k in obj) {
-                                const res = findOffers(obj[k]);
-                                if (res) return res;
-                            }
-                            return null;
-                        };
-                        const offers = findOffers(json);
-                        if (offers) {
-                            const offerList = Array.isArray(offers) ? offers : [offers];
-                            for (let offer of offerList) {
-                                const p = offer.price || offer.lowPrice || offer.highPrice;
-                                if (p) {
-                                    const parsed = parseFloat(p.toString().replace(/[^0-9.]/g, ''));
-                                    if (!isNaN(parsed) && parsed > 0) {
-                                        price = parsed;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        if (price) break;
-                    } catch(e){}
                 }
             }
 
