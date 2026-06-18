@@ -281,8 +281,12 @@
                             <label for="opt-url">URL da loja / produto</label>
                             <input type="text" id="opt-url" placeholder="Cole o link de onde comprar">
                         </div>
-                        <div class="form-group">
-                            <label for="opt-image">URL da foto</label>
+                        <div class="form-group" id="opt-image-group">
+                            <label for="opt-image" style="display: flex; justify-content: space-between; align-items: center;">
+                                <span>Fotos do produto</span>
+                                <button type="button" id="toggle-image-input-btn" style="display:none; background:none; border:none; color:var(--primary); font-size:0.75rem; padding:0; cursor:pointer; font-weight:600;">Editar URL</button>
+                            </label>
+                            <div id="opt-image-preview" style="display: none; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.5rem; margin-bottom: 0.5rem;"></div>
                             <input type="text" id="opt-image" placeholder="Cole URL da imagem ou deixe em branco">
                         </div>
                         <div class="option-editor-actions">

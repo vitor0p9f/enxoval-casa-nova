@@ -116,20 +116,28 @@ async function parseExternalMetadata(url) {
                             title = obj.name;
                         }
                         
-                        if (obj.image) {
-                            let imgs = Array.isArray(obj.image) ? obj.image : [obj.image];
-                            imgs.forEach(img => {
-                                if (typeof img === 'string') jsonLdImages.push(img);
-                                else if (img && img.url) jsonLdImages.push(img.url);
-                                else if (img && img.contentUrl) jsonLdImages.push(img.contentUrl);
-                            });
-                        }
+                        // Extract images from known properties
+                        ['image', 'thumbnailUrl', 'thumbnail', 'primaryImageOfPage'].forEach(key => {
+                            if (obj[key]) {
+                                let imgs = Array.isArray(obj[key]) ? obj[key] : [obj[key]];
+                                imgs.forEach(img => {
+                                    if (typeof img === 'string') jsonLdImages.push(img);
+                                    else if (img && typeof img.url === 'string') jsonLdImages.push(img.url);
+                                    else if (img && img.url && typeof img.url['@id'] === 'string') jsonLdImages.push(img.url['@id']);
+                                    else if (img && typeof img.contentUrl === 'string') jsonLdImages.push(img.contentUrl);
+                                    else if (img && typeof img['@id'] === 'string') jsonLdImages.push(img['@id']);
+                                });
+                            }
+                        });
                         
                         // Extract standalone ImageObjects
                         let types = Array.isArray(obj['@type']) ? obj['@type'] : [obj['@type']];
                         if (types.includes('ImageObject')) {
                             if (typeof obj.url === 'string') jsonLdImages.push(obj.url);
+                            else if (obj.url && typeof obj.url['@id'] === 'string') jsonLdImages.push(obj.url['@id']);
+                            
                             if (typeof obj.contentUrl === 'string') jsonLdImages.push(obj.contentUrl);
+                            else if (obj.contentUrl && typeof obj.contentUrl['@id'] === 'string') jsonLdImages.push(obj.contentUrl['@id']);
                         }
                         
                         if (!price && obj.offers) {
@@ -373,17 +381,20 @@ function showOptionEditorPanel(data = null, isEdit = false) {
     const panel = document.getElementById('option-editor-panel');
     panel.style.display = 'flex';
 
+    let imgValue = '';
     if (data && !isEdit) {
         document.getElementById('opt-name').value = data.storeName || '';
         document.getElementById('opt-price').value = data.price > 0 ? data.price : '';
-        document.getElementById('opt-image').value = data.imageUrl || '';
+        imgValue = data.imageUrl || '';
+        document.getElementById('opt-image').value = imgValue;
         document.getElementById('opt-url').value = data.url || '';
         editingOptionId = null;
         document.getElementById('save-option-btn').innerText = 'Adicionar Opção';
     } else if (data && isEdit) {
         document.getElementById('opt-name').value = data.storeName || '';
         document.getElementById('opt-price').value = data.price > 0 ? data.price : '';
-        document.getElementById('opt-image').value = data.imageUrl || '';
+        imgValue = data.imageUrl || '';
+        document.getElementById('opt-image').value = imgValue;
         document.getElementById('opt-url').value = data.url || '';
         editingOptionId = data.id;
         document.getElementById('save-option-btn').innerText = 'Salvar Alterações';
@@ -395,6 +406,57 @@ function showOptionEditorPanel(data = null, isEdit = false) {
         editingOptionId = null;
         document.getElementById('save-option-btn').innerText = 'Adicionar Opção';
     }
+
+    // Handle image preview
+    const previewDiv = document.getElementById('opt-image-preview');
+    const toggleBtn = document.getElementById('toggle-image-input-btn');
+    const inputField = document.getElementById('opt-image');
+    
+    if (previewDiv && toggleBtn && inputField) {
+        previewDiv.innerHTML = '';
+        if (imgValue) {
+            let imgs = [];
+            try {
+                const parsed = JSON.parse(imgValue);
+                if (Array.isArray(parsed)) imgs = parsed;
+                else imgs = [imgValue];
+            } catch(e) {
+                imgs = [imgValue];
+            }
+            
+            if (imgs.length > 0) {
+                inputField.style.display = 'none';
+                previewDiv.style.display = 'flex';
+                toggleBtn.style.display = 'inline-block';
+                
+                imgs.forEach(src => {
+                    const img = document.createElement('img');
+                    img.src = src;
+                    img.style.height = '70px';
+                    img.style.width = '70px';
+                    img.style.objectFit = 'cover';
+                    img.style.borderRadius = 'var(--radius-sm)';
+                    img.style.border = '1px solid var(--border-color)';
+                    img.style.flexShrink = '0';
+                    img.onerror = () => { img.src = 'assets/cozy_home_illustration.png'; };
+                    previewDiv.appendChild(img);
+                });
+                
+                toggleBtn.onclick = () => {
+                    inputField.style.display = 'block';
+                    toggleBtn.style.display = 'none';
+                };
+            } else {
+                inputField.style.display = 'block';
+                previewDiv.style.display = 'none';
+                toggleBtn.style.display = 'none';
+            }
+        } else {
+            inputField.style.display = 'block';
+            previewDiv.style.display = 'none';
+            toggleBtn.style.display = 'none';
+        }
+    }
 }
 
 function hideOptionEditorPanel() {
@@ -404,6 +466,14 @@ function hideOptionEditorPanel() {
     document.getElementById('opt-image').value = '';
     document.getElementById('opt-url').value = '';
     editingOptionId = null;
+
+    // Reset image preview state
+    const previewDiv = document.getElementById('opt-image-preview');
+    const toggleBtn = document.getElementById('toggle-image-input-btn');
+    const inputField = document.getElementById('opt-image');
+    if (previewDiv) previewDiv.style.display = 'none';
+    if (toggleBtn) toggleBtn.style.display = 'none';
+    if (inputField) inputField.style.display = 'block';
 }
 
 function showScraperAlert(text, type) {
