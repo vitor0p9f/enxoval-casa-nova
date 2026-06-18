@@ -125,6 +125,13 @@ async function parseExternalMetadata(url) {
                             });
                         }
                         
+                        // Extract standalone ImageObjects
+                        let types = Array.isArray(obj['@type']) ? obj['@type'] : [obj['@type']];
+                        if (types.includes('ImageObject')) {
+                            if (typeof obj.url === 'string') jsonLdImages.push(obj.url);
+                            if (typeof obj.contentUrl === 'string') jsonLdImages.push(obj.contentUrl);
+                        }
+                        
                         if (!price && obj.offers) {
                             const offerList = Array.isArray(obj.offers) ? obj.offers : [obj.offers];
                             for (let offer of offerList) {
