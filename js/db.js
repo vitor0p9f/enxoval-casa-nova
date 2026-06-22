@@ -161,11 +161,17 @@ function createDbTables() {
             status TEXT NOT NULL DEFAULT 'pending',
             active_option_id TEXT,
             acquired_at TEXT,
+            quantity INTEGER DEFAULT 1,
             FOREIGN KEY (section_id) REFERENCES sections(id) ON DELETE CASCADE
         );
     `);
     try {
         db.run("ALTER TABLE items ADD COLUMN acquired_at TEXT;");
+    } catch (e) {
+        // Coluna já existe
+    }
+    try {
+        db.run("ALTER TABLE items ADD COLUMN quantity INTEGER DEFAULT 1;");
     } catch (e) {
         // Coluna já existe
     }
@@ -189,8 +195,8 @@ function seedDbData(state) {
             db.run("INSERT OR REPLACE INTO sections (id, name, position, sort_order) VALUES (?, ?, ?, ?);", [sec.id, sec.name, idx, sec.sortOrder || 'default']);
         });
         state.items.forEach(item => {
-            db.run("INSERT OR REPLACE INTO items (id, section_id, name, status, active_option_id, acquired_at) VALUES (?, ?, ?, ?, ?, ?);", 
-                [item.id, item.sectionId, item.name, item.status, item.activeOptionId, item.acquiredAt || null]);
+            db.run("INSERT OR REPLACE INTO items (id, section_id, name, status, active_option_id, acquired_at, quantity) VALUES (?, ?, ?, ?, ?, ?, ?);", 
+                [item.id, item.sectionId, item.name, item.status, item.activeOptionId, item.acquiredAt || null, item.quantity || 1]);
             item.options.forEach(opt => {
                 db.run("INSERT OR REPLACE INTO item_options (id, item_id, store_name, price, url, image_url) VALUES (?, ?, ?, ?, ?, ?);",
                     [opt.id, item.id, opt.storeName, opt.price, opt.url, opt.imageUrl]);
@@ -242,6 +248,7 @@ function loadStateFromSql() {
                     status: item.status,
                     activeOptionId: item.active_option_id,
                     acquiredAt: item.acquired_at || null,
+                    quantity: item.quantity || 1,
                     options: []
                 };
             });
@@ -300,11 +307,17 @@ async function loadStateFromTurso() {
                 status TEXT NOT NULL DEFAULT 'pending',
                 active_option_id TEXT,
                 acquired_at TEXT,
+                quantity INTEGER DEFAULT 1,
                 FOREIGN KEY (section_id) REFERENCES sections(id) ON DELETE CASCADE
             );
         `);
         try {
             await libsqlClient.execute("ALTER TABLE items ADD COLUMN acquired_at TEXT;");
+        } catch (e) {
+            // Coluna já existe
+        }
+        try {
+            await libsqlClient.execute("ALTER TABLE items ADD COLUMN quantity INTEGER DEFAULT 1;");
         } catch (e) {
             // Coluna já existe
         }
@@ -348,6 +361,7 @@ async function loadStateFromTurso() {
                 status: row.status,
                 activeOptionId: row.active_option_id,
                 acquiredAt: row.acquired_at || null,
+                quantity: row.quantity || 1,
                 options: []
             };
         });
@@ -392,8 +406,8 @@ async function saveStateToTurso() {
         
         appState.items.forEach(item => {
             statements.push({
-                sql: "INSERT OR REPLACE INTO items (id, section_id, name, status, active_option_id, acquired_at) VALUES (?, ?, ?, ?, ?, ?);",
-                args: [item.id, item.sectionId, item.name, item.status, item.activeOptionId || null, item.acquiredAt || null]
+                sql: "INSERT OR REPLACE INTO items (id, section_id, name, status, active_option_id, acquired_at, quantity) VALUES (?, ?, ?, ?, ?, ?, ?);",
+                args: [item.id, item.sectionId, item.name, item.status, item.activeOptionId || null, item.acquiredAt || null, item.quantity || 1]
             });
             
             statements.push({
@@ -455,6 +469,7 @@ async function fetchRemoteState() {
                 status: row.status,
                 activeOptionId: row.active_option_id,
                 acquiredAt: row.acquired_at || null,
+                quantity: row.quantity || 1,
                 options: []
             };
         });
@@ -506,8 +521,8 @@ async function saveState() {
         });
         
         appState.items.forEach(item => {
-            db.run("INSERT OR REPLACE INTO items (id, section_id, name, status, active_option_id, acquired_at) VALUES (?, ?, ?, ?, ?, ?);",
-                [item.id, item.sectionId, item.name, item.status, item.activeOptionId, item.acquiredAt || null]);
+            db.run("INSERT OR REPLACE INTO items (id, section_id, name, status, active_option_id, acquired_at, quantity) VALUES (?, ?, ?, ?, ?, ?, ?);",
+                [item.id, item.sectionId, item.name, item.status, item.activeOptionId, item.acquiredAt || null, item.quantity || 1]);
             
             db.run("DELETE FROM item_options WHERE item_id = ?;", [item.id]);
 

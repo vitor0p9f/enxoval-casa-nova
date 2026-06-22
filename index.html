@@ -190,6 +190,26 @@
                             </table>
                         </div>
                     </div>
+
+                    <!-- Store breakdown section -->
+                    <div class="breakdown-container" style="margin-top: 2rem;">
+                        <h4 class="breakdown-title">Resumo por loja (opções ativas)</h4>
+                        <div class="table-responsive">
+                            <table class="breakdown-table">
+                                <thead>
+                                    <tr>
+                                        <th>Loja</th>
+                                        <th>Itens cadastrados</th>
+                                        <th>Progresso</th>
+                                        <th>Valor estimado</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dashboard-store-body">
+                                    <!-- Dynamic rows from app.js -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -215,12 +235,19 @@
                 </div>
 
                 <div class="form-row">
-                    <div class="form-group">
+                    <div class="form-group percent-60">
                         <label for="item-section-select">Seção <span class="required">*</span></label>
                         <select id="item-section-select" required>
                             <!-- Dynamically populated -->
                         </select>
                     </div>
+                    <div class="form-group percent-40">
+                        <label for="item-quantity-input">Qtd.</label>
+                        <input type="number" id="item-quantity-input" min="1" value="1" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
                     <div class="form-group">
                         <label for="item-status-select">Status</label>
                         <select id="item-status-select">
@@ -287,7 +314,7 @@
                                 <button type="button" id="toggle-image-input-btn" style="display:none; background:none; border:none; color:var(--primary); font-size:0.75rem; padding:0; cursor:pointer; font-weight:600;">Editar URL</button>
                             </label>
                             <div id="opt-image-preview" style="display: none; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.5rem; margin-bottom: 0.5rem;"></div>
-                            <input type="text" id="opt-image" placeholder="Cole URL da imagem ou deixe em branco">
+                            <textarea id="opt-image" rows="3" placeholder="Cole as URLs das imagens (uma por linha) ou deixe em branco"></textarea>
                         </div>
                         <div class="option-editor-actions">
                             <button type="button" class="btn btn-sm btn-secondary"

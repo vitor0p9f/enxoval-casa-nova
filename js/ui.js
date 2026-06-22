@@ -65,7 +65,7 @@ function renderChecklist() {
             sectionItems.sort((a, b) => {
                 const getPrice = (item) => {
                     const activeOpt = item.options.find(o => o.id === item.activeOptionId) || item.options[0];
-                    return activeOpt && typeof activeOpt.price === 'number' ? activeOpt.price : 0;
+                    return activeOpt && typeof activeOpt.price === 'number' ? activeOpt.price * (item.quantity || 1) : 0;
                 };
                 if (sortMode === 'alpha_asc') return a.name.localeCompare(b.name);
                 if (sortMode === 'alpha_desc') return b.name.localeCompare(a.name);
@@ -170,7 +170,9 @@ function renderChecklist() {
             sectionItems.forEach(item => {
                 // Determine price and active option info
                 const activeOpt = item.options.find(o => o.id === item.activeOptionId) || item.options[0];
-                const priceStr = activeOpt ? `R$ ${activeOpt.price.toFixed(2).replace('.', ',')}` : 'Sob consulta';
+                const qty = item.quantity || 1;
+                const itemTotalPrice = activeOpt && typeof activeOpt.price === 'number' ? activeOpt.price * qty : 0;
+                const priceStr = activeOpt ? `R$ ${itemTotalPrice.toFixed(2).replace('.', ',')}` : 'Sob consulta';
                 const storeStr = activeOpt ? activeOpt.storeName : '';
                 const optionsCount = item.options.length;
 
@@ -198,6 +200,9 @@ function renderChecklist() {
                 const name = document.createElement('div');
                 name.className = 'item-name';
                 name.innerText = item.name;
+                if (qty > 1) {
+                    name.innerText += ` (x${qty})`;
+                }
                 
                 const meta = document.createElement('div');
                 meta.className = 'item-meta';
@@ -270,7 +275,7 @@ function renderDashboard() {
     appState.items.forEach(item => {
         const activeOpt = item.options.find(o => o.id === item.activeOptionId) || item.options[0];
         if (activeOpt && typeof activeOpt.price === 'number') {
-            totalPrice += activeOpt.price;
+            totalPrice += activeOpt.price * (item.quantity || 1);
         }
     });
 
@@ -305,7 +310,7 @@ function renderDashboard() {
         sectionItems.forEach(item => {
             const activeOpt = item.options.find(o => o.id === item.activeOptionId) || item.options[0];
             if (activeOpt && typeof activeOpt.price === 'number') {
-                sectionPrice += activeOpt.price;
+                sectionPrice += activeOpt.price * (item.quantity || 1);
             }
         });
 
@@ -328,6 +333,54 @@ function renderDashboard() {
         `;
         tableBody.appendChild(row);
     });
+
+    // Render detailed breakdown by store
+    const storeBody = document.getElementById('dashboard-store-body');
+    if (storeBody) {
+        storeBody.innerHTML = '';
+        const storeSummary = {};
+        appState.items.forEach(item => {
+            const activeOpt = item.options.find(o => o.id === item.activeOptionId) || item.options[0];
+            if (activeOpt) {
+                const store = (activeOpt.storeName && activeOpt.storeName.trim()) ? activeOpt.storeName.trim() : 'Outras / Não especificada';
+                if (!storeSummary[store]) {
+                    storeSummary[store] = { count: 0, checked: 0, total: 0 };
+                }
+                storeSummary[store].count += 1;
+                if (item.status === 'acquired') {
+                    storeSummary[store].checked += 1;
+                }
+                if (typeof activeOpt.price === 'number') {
+                    storeSummary[store].total += activeOpt.price * (item.quantity || 1);
+                }
+            }
+        });
+
+        const sortedStores = Object.entries(storeSummary).sort((a, b) => b[1].total - a[1].total);
+        if (sortedStores.length === 0) {
+            storeBody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Nenhuma loja cadastrada.</td></tr>';
+        } else {
+            sortedStores.forEach(([storeName, data]) => {
+                const percent = data.count > 0 ? Math.round((data.checked / data.count) * 100) : 0;
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="font-weight: 600;">${storeName}</td>
+                    <td>${data.count} item(ns)</td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span>${percent}%</span>
+                            <div class="progress-bar-bg" style="flex: 1; height: 6px; min-width: 60px;">
+                                <div class="progress-bar-fill" style="width: ${percent}%; height: 100%;"></div>
+                            </div>
+                            <span style="font-size: 0.75rem; color: var(--text-muted);">(${data.checked}/${data.count})</span>
+                        </div>
+                    </td>
+                    <td style="font-weight: 600; color: var(--primary);">R$ ${data.total.toFixed(2).replace('.', ',')}</td>
+                `;
+                storeBody.appendChild(row);
+            });
+        }
+    }
 }
 
 let pendingUncheckItemId = null;
@@ -474,6 +527,7 @@ function openItemModal(itemId = null, defaultSectionId = null) {
         document.getElementById('item-name-input').value = item.name;
         document.getElementById('item-section-select').value = item.sectionId;
         document.getElementById('item-status-select').value = item.status;
+        document.getElementById('item-quantity-input').value = item.quantity || 1;
         
         if (sectionSelectGroup) sectionSelectGroup.style.display = '';
         currentModalOptions = JSON.parse(JSON.stringify(item.options)); // Clone options
@@ -483,6 +537,7 @@ function openItemModal(itemId = null, defaultSectionId = null) {
         modalTitle.innerText = 'Adicionar novo item';
         form.reset();
         document.getElementById('edit-item-id').value = '';
+        document.getElementById('item-quantity-input').value = 1;
         
         if (defaultSectionId) {
             document.getElementById('item-section-select').value = defaultSectionId;
@@ -515,6 +570,7 @@ async function handleItemSubmit(e) {
     const name = document.getElementById('item-name-input').value.trim();
     const sectionId = document.getElementById('item-section-select').value;
     const status = document.getElementById('item-status-select').value;
+    const quantity = parseInt(document.getElementById('item-quantity-input').value) || 1;
 
     if (!name || !sectionId) return;
 
@@ -548,6 +604,7 @@ async function handleItemSubmit(e) {
             item.name = name;
             item.sectionId = sectionId;
             item.status = status;
+            item.quantity = quantity;
             item.options = currentModalOptions;
             item.activeOptionId = activeOptionId;
         }
@@ -558,6 +615,7 @@ async function handleItemSubmit(e) {
             name: name,
             sectionId: sectionId,
             status: status,
+            quantity: quantity,
             options: currentModalOptions,
             activeOptionId: activeOptionId,
             acquiredAt: status === 'acquired' ? new Date().toLocaleDateString('pt-BR') : null
@@ -587,8 +645,17 @@ async function handleDeleteItem() {
 function saveCurrentOption() {
     const storeName = document.getElementById('opt-name').value.trim() || 'Loja';
     const priceVal = parseFloat(document.getElementById('opt-price').value) || 0;
-    const imageUrl = document.getElementById('opt-image').value.trim();
     const url = document.getElementById('opt-url').value.trim();
+    
+    let imageUrl = document.getElementById('opt-image').value.trim();
+    if (imageUrl) {
+        const lines = imageUrl.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        if (lines.length > 1) {
+            imageUrl = JSON.stringify(lines);
+        } else if (lines.length === 1) {
+            imageUrl = lines[0];
+        }
+    }
 
     if (editingOptionId) {
         // Edit existing option in list

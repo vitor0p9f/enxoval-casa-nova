@@ -382,11 +382,17 @@ function showOptionEditorPanel(data = null, isEdit = false) {
     panel.style.display = 'flex';
 
     let imgValue = '';
+    let textAreaValue = '';
     if (data && !isEdit) {
         document.getElementById('opt-name').value = data.storeName || '';
         document.getElementById('opt-price').value = data.price > 0 ? data.price : '';
         imgValue = data.imageUrl || '';
-        document.getElementById('opt-image').value = imgValue;
+        try {
+            const parsed = JSON.parse(imgValue);
+            if (Array.isArray(parsed)) textAreaValue = parsed.join('\n');
+            else textAreaValue = imgValue;
+        } catch(e) { textAreaValue = imgValue; }
+        document.getElementById('opt-image').value = textAreaValue;
         document.getElementById('opt-url').value = data.url || '';
         editingOptionId = null;
         document.getElementById('save-option-btn').innerText = 'Adicionar Opção';
@@ -394,7 +400,12 @@ function showOptionEditorPanel(data = null, isEdit = false) {
         document.getElementById('opt-name').value = data.storeName || '';
         document.getElementById('opt-price').value = data.price > 0 ? data.price : '';
         imgValue = data.imageUrl || '';
-        document.getElementById('opt-image').value = imgValue;
+        try {
+            const parsed = JSON.parse(imgValue);
+            if (Array.isArray(parsed)) textAreaValue = parsed.join('\n');
+            else textAreaValue = imgValue;
+        } catch(e) { textAreaValue = imgValue; }
+        document.getElementById('opt-image').value = textAreaValue;
         document.getElementById('opt-url').value = data.url || '';
         editingOptionId = data.id;
         document.getElementById('save-option-btn').innerText = 'Salvar Alterações';
