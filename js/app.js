@@ -162,6 +162,9 @@ function initEventListeners() {
             downloadSqliteFile();
         });
     }
+
+    // Inicializar visualizador de imagens
+    setupImageViewer();
 }
 
 /* ==========================================

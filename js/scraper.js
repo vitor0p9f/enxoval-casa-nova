@@ -441,16 +441,24 @@ function showOptionEditorPanel(data = null, isEdit = false) {
                 toggleBtn.style.display = 'inline-block';
                 
                 imgs.forEach(src => {
-                    const img = document.createElement('img');
-                    img.src = src;
-                    img.style.height = '70px';
-                    img.style.width = '70px';
-                    img.style.objectFit = 'cover';
-                    img.style.borderRadius = 'var(--radius-sm)';
-                    img.style.border = '1px solid var(--border-color)';
-                    img.style.flexShrink = '0';
-                    img.onerror = () => { img.src = 'assets/cozy_home_illustration.png'; };
-                    previewDiv.appendChild(img);
+                    const isVideo = src.toLowerCase().match(/\.(mp4|webm|ogg)$/i);
+                    const media = document.createElement(isVideo ? 'video' : 'img');
+                    media.src = src;
+                    media.style.height = '70px';
+                    media.style.width = '70px';
+                    media.style.objectFit = 'cover';
+                    media.style.borderRadius = 'var(--radius-sm)';
+                    media.style.border = '1px solid var(--border-color)';
+                    media.style.flexShrink = '0';
+                    if (isVideo) {
+                        media.muted = true;
+                        media.autoplay = true;
+                        media.loop = true;
+                        media.playsInline = true;
+                    } else {
+                        media.onerror = () => { media.src = 'assets/cozy_home_illustration.png'; };
+                    }
+                    previewDiv.appendChild(media);
                 });
                 
                 toggleBtn.onclick = () => {

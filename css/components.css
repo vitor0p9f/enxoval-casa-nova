@@ -218,6 +218,7 @@ input:focus, select:focus, textarea:focus {
     border-radius: calc(var(--radius-md) - 5px);
     pointer-events: none;
     opacity: 0.5;
+    z-index: 10;
 }
 
 .modal-backdrop.open .modal-container {

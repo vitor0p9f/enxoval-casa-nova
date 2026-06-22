@@ -258,20 +258,29 @@
                 </div>
 
                 <!-- Primary Option Image Preview -->
-                <div id="primary-option-preview-container" class="primary-option-preview-container" style="display: none; flex-direction: column; align-items: center; margin-bottom: 1.5rem; padding: 1rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); background-color: var(--bg-primary);">
-                    <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1rem; color: var(--primary); margin-bottom: 0.5rem;">Primeira opção</span>
-                    <img id="primary-option-img" src="assets/cozy_home_illustration.png" style="max-height: 160px; width: 100%; object-fit: contain; border-radius: var(--radius-sm);" alt="Preview">
+                <div id="primary-option-preview-container" class="primary-option-preview-container"
+                    style="display: none; flex-direction: column; align-items: center; margin-bottom: 1.5rem; padding: 1rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); background-color: var(--bg-primary);">
+                    <span
+                        style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1rem; color: var(--primary); margin-bottom: 0.5rem;">Primeira
+                        opção</span>
+                    <img id="primary-option-img" src="assets/cozy_home_illustration.png"
+                        style="max-height: 160px; width: 100%; object-fit: contain; border-radius: var(--radius-sm);"
+                        alt="Preview">
                 </div>
 
                 <!-- Product Options Management -->
                 <div class="options-section">
-                    <div class="options-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div class="options-header"
+                        style="display: flex; justify-content: space-between; align-items: flex-start;">
                         <div>
                             <h4>Opções de lojas & links</h4>
-                            <span class="options-subtitle">Adicione opções para comparar preços. A primeira opção será usada
+                            <span class="options-subtitle">Adicione opções para comparar preços. A primeira opção será
+                                usada
                                 nos totais.</span>
                         </div>
-                        <button type="button" class="btn btn-secondary btn-sm" id="add-manual-opt-btn" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;"><i data-lucide="plus" style="width: 12px; height: 12px;"></i> Manual</button>
+                        <button type="button" class="btn btn-secondary btn-sm" id="add-manual-opt-btn"
+                            style="padding: 0.3rem 0.6rem; font-size: 0.75rem;"><i data-lucide="plus"
+                                style="width: 12px; height: 12px;"></i> Manual</button>
                     </div>
 
                     <!-- Scraping input -->
@@ -309,12 +318,18 @@
                             <input type="text" id="opt-url" placeholder="Cole o link de onde comprar">
                         </div>
                         <div class="form-group" id="opt-image-group">
-                            <label for="opt-image" style="display: flex; justify-content: space-between; align-items: center;">
-                                <span>Fotos do produto</span>
-                                <button type="button" id="toggle-image-input-btn" style="display:none; background:none; border:none; color:var(--primary); font-size:0.75rem; padding:0; cursor:pointer; font-weight:600;">Editar URL</button>
+                            <label for="opt-image"
+                                style="display: flex; justify-content: space-between; align-items: center;">
+                                <span>Fotos/Vídeos do produto</span>
+                                <button type="button" id="toggle-image-input-btn"
+                                    style="display:none; background:none; border:none; color:var(--primary); font-size:0.75rem; padding:0; cursor:pointer; font-weight:600;">Editar
+                                    URL</button>
                             </label>
-                            <div id="opt-image-preview" style="display: none; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.5rem; margin-bottom: 0.5rem;"></div>
-                            <textarea id="opt-image" rows="3" placeholder="Cole as URLs das imagens (uma por linha) ou deixe em branco"></textarea>
+                            <div id="opt-image-preview"
+                                style="display: none; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.5rem; margin-bottom: 0.5rem;">
+                            </div>
+                            <textarea id="opt-image" rows="3"
+                                placeholder="Cole as URLs das imagens ou vídeos (uma por linha)"></textarea>
                         </div>
                         <div class="option-editor-actions">
                             <button type="button" class="btn btn-sm btn-secondary"
@@ -386,6 +401,35 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" id="cancel-uncheck-btn">Cancelar</button>
                 <button type="button" class="btn btn-primary" id="confirm-uncheck-btn-submit">Sim, desmarcar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Image Viewer / Lupa -->
+    <div class="modal-backdrop" id="image-viewer-modal" style="z-index: 600;">
+        <div class="modal-container" style="max-width: 90vw; height: 85vh; display: flex; flex-direction: column;">
+            <header class="modal-header"
+                style="padding: 1.5rem 1.5rem 1rem 1.5rem; position: relative; justify-content: center;">
+                <h3 class="modal-title" style="font-size: 1.2rem; text-align: center; margin: 0 auto;">Visualizar
+                    foto/vídeo do produto</h3>
+                <button class="modal-close-btn" id="close-image-viewer-btn" type="button"
+                    style="position: absolute; right: 1.5rem;">
+                    <i data-lucide="x"></i>
+                </button>
+            </header>
+            <div class="modal-body"
+                style="padding: 0; overflow: hidden; flex: 1; display: flex; justify-content: center; align-items: center; background-color: var(--bg-primary);">
+                <div id="magnifier-container"
+                    style="position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; cursor: zoom-in; overflow: hidden;">
+                    <img id="viewer-full-img" src=""
+                        style="max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.1s ease-out; transform: scale(1); transform-origin: center center; pointer-events: none; display: none;">
+                    <video id="viewer-full-video" src="" controls
+                        style="max-width: 100%; max-height: 100%; object-fit: contain; display: none;"></video>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding: 0.8rem; justify-content: center; background-color: var(--white);">
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Passe o mouse sobre a imagem para
+                    usar a lupa.</p>
             </div>
         </div>
     </div>

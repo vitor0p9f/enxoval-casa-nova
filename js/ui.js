@@ -718,9 +718,7 @@ function renderModalOptionsList(activeId = null) {
             renderModalOptionsList(opt.id);
         });
 
-        // Image thumb
-        const img = document.createElement('img');
-        img.className = 'option-img-thumb';
+        // Media thumb
         let thumbSrc = opt.imageUrl || 'assets/cozy_home_illustration.png';
         if (opt.imageUrl) {
             try {
@@ -728,8 +726,20 @@ function renderModalOptionsList(activeId = null) {
                 if (Array.isArray(parsed) && parsed.length > 0) thumbSrc = parsed[0];
             } catch(e) {}
         }
+        
+        const isVideo = thumbSrc.toLowerCase().match(/\.(mp4|webm|ogg)$/i);
+        const img = document.createElement(isVideo ? 'video' : 'img');
+        img.className = 'option-img-thumb';
         img.src = thumbSrc;
-        img.onerror = () => { img.src = 'assets/cozy_home_illustration.png'; }; // Handles broken links
+        
+        if (isVideo) {
+            img.muted = true;
+            img.autoplay = true;
+            img.loop = true;
+            img.playsInline = true;
+        } else {
+            img.onerror = () => { img.src = 'assets/cozy_home_illustration.png'; }; // Handles broken links
+        }
 
         // Details
         const details = document.createElement('div');
@@ -834,12 +844,7 @@ function renderModalOptionsList(activeId = null) {
             carousel.style.overflow = 'hidden';
             carousel.style.borderRadius = 'var(--radius-sm)';
 
-            const imgEl = document.createElement('img');
-            imgEl.style.maxHeight = '160px';
-            imgEl.style.maxWidth = '100%';
-            imgEl.style.objectFit = 'contain';
-            imgEl.src = images[0];
-
+            let currentMediaEl = null;
             let currIdx = 0;
 
             const prevBtn = document.createElement('button');
@@ -859,8 +864,9 @@ function renderModalOptionsList(activeId = null) {
             prevBtn.type = 'button';
             prevBtn.onclick = (e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 currIdx = (currIdx - 1 + images.length) % images.length;
-                imgEl.src = images[currIdx];
+                updateMedia();
             };
 
             const nextBtn = document.createElement('button');
@@ -880,24 +886,68 @@ function renderModalOptionsList(activeId = null) {
             nextBtn.type = 'button';
             nextBtn.onclick = (e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 currIdx = (currIdx + 1) % images.length;
-                imgEl.src = images[currIdx];
+                updateMedia();
             };
 
-            carousel.appendChild(imgEl);
+            const updateMedia = () => {
+                const src = images[currIdx];
+                const isVideo = src.toLowerCase().match(/\.(mp4|webm|ogg)$/i);
+                
+                const newMediaEl = document.createElement(isVideo ? 'video' : 'img');
+                newMediaEl.style.maxHeight = '160px';
+                newMediaEl.style.maxWidth = '100%';
+                newMediaEl.style.objectFit = 'contain';
+                newMediaEl.src = src;
+
+                if (isVideo) {
+                    newMediaEl.muted = true;
+                    newMediaEl.autoplay = true;
+                    newMediaEl.loop = true;
+                    newMediaEl.playsInline = true;
+                }
+                newMediaEl.style.cursor = 'zoom-in';
+                newMediaEl.onclick = () => openImageViewer(src);
+
+                if (currentMediaEl && currentMediaEl.parentNode) {
+                    currentMediaEl.parentNode.replaceChild(newMediaEl, currentMediaEl);
+                } else {
+                    carousel.appendChild(newMediaEl);
+                }
+                currentMediaEl = newMediaEl;
+                
+                // Ensure buttons stay on top
+                carousel.appendChild(prevBtn);
+                carousel.appendChild(nextBtn);
+            };
+
+            updateMedia();
             carousel.appendChild(prevBtn);
             carousel.appendChild(nextBtn);
             primaryImgContainer.appendChild(carousel);
         } else {
-            // Render standard image
-            const imgEl = document.createElement('img');
-            imgEl.id = 'primary-option-img';
-            imgEl.style.maxHeight = '160px';
-            imgEl.style.width = '100%';
-            imgEl.style.objectFit = 'contain';
-            imgEl.style.borderRadius = 'var(--radius-sm)';
-            imgEl.src = images.length === 1 ? images[0] : 'assets/cozy_home_illustration.png';
-            primaryImgContainer.appendChild(imgEl);
+            // Render standard media
+            const src = images.length === 1 ? images[0] : 'assets/cozy_home_illustration.png';
+            const isVideo = src.toLowerCase().match(/\.(mp4|webm|ogg)$/i);
+            
+            const mediaEl = document.createElement(isVideo ? 'video' : 'img');
+            mediaEl.id = 'primary-option-img';
+            mediaEl.style.maxHeight = '160px';
+            mediaEl.style.maxWidth = '100%';
+            mediaEl.style.objectFit = 'contain';
+            mediaEl.style.borderRadius = 'var(--radius-sm)';
+            mediaEl.src = src;
+
+            if (isVideo) {
+                mediaEl.muted = true;
+                mediaEl.autoplay = true;
+                mediaEl.loop = true;
+                mediaEl.playsInline = true;
+            }
+            mediaEl.style.cursor = 'zoom-in';
+            mediaEl.onclick = () => openImageViewer(src);
+            primaryImgContainer.appendChild(mediaEl);
         }
     }
     
@@ -909,6 +959,93 @@ function deleteOptionFromModal(optionId, currentActiveId) {
     currentModalOptions = currentModalOptions.filter(o => o.id !== optionId);
     let nextActiveId = currentActiveId === optionId ? null : currentActiveId;
     renderModalOptionsList(nextActiveId);
+}
+
+/* ==========================================
+   IMAGE VIEWER MODAL LOGIC
+   ========================================== */
+function openImageViewer(src) {
+    if (!src || src.includes('cozy_home_illustration')) return;
+    const modal = document.getElementById('image-viewer-modal');
+    const img = document.getElementById('viewer-full-img');
+    const vid = document.getElementById('viewer-full-video');
+    
+    const isVideo = src.toLowerCase().match(/\.(mp4|webm|ogg)$/i);
+    
+    if (isVideo) {
+        if (img) img.style.display = 'none';
+        if (vid) {
+            vid.style.display = 'block';
+            vid.src = src;
+        }
+    } else {
+        if (vid) {
+            vid.style.display = 'none';
+            vid.pause();
+        }
+        if (img) {
+            img.style.display = 'block';
+            img.src = src;
+        }
+    }
+    modal.classList.add('open');
+}
+
+function closeImageViewer() {
+    const modal = document.getElementById('image-viewer-modal');
+    modal.classList.remove('open');
+    const img = document.getElementById('viewer-full-img');
+    const vid = document.getElementById('viewer-full-video');
+    
+    setTimeout(() => {
+        if (img) {
+            img.src = '';
+            img.style.transform = 'scale(1)';
+            img.style.display = 'none';
+        }
+        if (vid) {
+            vid.pause();
+            vid.src = '';
+            vid.style.display = 'none';
+        }
+    }, 300); // Wait for transition
+}
+
+function setupImageViewer() {
+    const closeBtn = document.getElementById('close-image-viewer-btn');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeImageViewer);
+    }
+    
+    // Close on backdrop click
+    const modal = document.getElementById('image-viewer-modal');
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeImageViewer();
+        });
+    }
+    
+    const container = document.getElementById('magnifier-container');
+    const img = document.getElementById('viewer-full-img');
+    
+    if (container && img) {
+        container.addEventListener('mousemove', (e) => {
+            const rect = container.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const xPercent = (x / rect.width) * 100;
+            const yPercent = (y / rect.height) * 100;
+            
+            img.style.transformOrigin = `${xPercent}% ${yPercent}%`;
+            img.style.transform = 'scale(2.5)';
+        });
+        
+        container.addEventListener('mouseleave', () => {
+            img.style.transform = 'scale(1)';
+            img.style.transformOrigin = 'center center';
+        });
+    }
 }
 
 /* ==========================================
