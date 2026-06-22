@@ -499,6 +499,25 @@ async function fetchRemoteState() {
 }
 
 async function loadState() {
+    const isLocalTestMode = window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    
+    if (isLocalTestMode) {
+        console.log("[*] Modo de teste local detectado. Tentando usar LocalStorage para evitar deploy...");
+        const localData = localStorage.getItem('enxoval_test_state');
+        if (localData) {
+            try {
+                appState = JSON.parse(localData);
+                console.log("[*] Dados carregados do LocalStorage com sucesso.");
+                return;
+            } catch(e) {
+                console.error("Erro ao ler LocalStorage:", e);
+            }
+        } else {
+            console.log("[*] LocalStorage vazio. Iniciando app limpo para testes locais.");
+            return;
+        }
+    }
+
     await initSqlDatabase();
     if (libsqlClient) {
         await loadStateFromTurso();
@@ -508,6 +527,14 @@ async function loadState() {
 }
 
 async function saveState() {
+    const isLocalTestMode = window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    
+    if (isLocalTestMode) {
+        localStorage.setItem('enxoval_test_state', JSON.stringify(appState));
+        console.log("[*] Estado salvo no LocalStorage (Modo de teste local).");
+        return;
+    }
+
     if (libsqlClient) {
         await saveStateToTurso();
         return;
